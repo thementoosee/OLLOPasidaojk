@@ -2,6 +2,14 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { UserPlus, Swords, Star, Zap, DollarSign } from 'lucide-react';
 import { GiveawayOverlay } from './GiveawayOverlay';
+import {
+  connectStreamElements,
+  disconnectStreamElements,
+  onChatMessage,
+  onStreamEvent,
+  type SEChatMessage,
+  type SEEvent,
+} from '../lib/streamelements';
 
 interface ChatMessage {
   id: string;
@@ -51,6 +59,20 @@ export function ChatOverlay() {
     setMessages([]);
     setAlerts([]);
 
+    // ── StreamElements connection ──
+    connectStreamElements();
+
+    const unsubChat = onChatMessage((msg: SEChatMessage) => {
+      setMessages((prev) => [msg, ...prev].slice(0, 50));
+
+      // Auto-join giveaway if message matches active command
+      handleGiveawayCommand(msg);
+    });
+
+    const unsubEvents = onStreamEvent((evt: SEEvent) => {
+      setAlerts((prev) => [evt, ...prev].slice(0, 10));
+    });
+
     const dataChannel = supabase
       .channel(`chat-data-${Date.now()}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'bonus_hunts' }, () => {
@@ -73,13 +95,20 @@ export function ChatOverlay() {
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'giveaways' }, () => {
         loadActiveGiveawayWinner();
+        loadActiveGiveawayCommand();
       })
       .subscribe((status) => {
         console.log('📡 Data channel status:', status);
       });
 
+    // Pre-load active giveaway command
+    loadActiveGiveawayCommand();
+
     return () => {
       console.log('🔌 ChatOverlay: Cleaning up subscriptions...');
+      unsubChat();
+      unsubEvents();
+      disconnectStreamElements();
       supabase.removeChannel(dataChannel);
     };
   }, []);
@@ -110,6 +139,50 @@ export function ChatOverlay() {
       setWinnerSelectedAt(data?.completed_at || null);
     } catch (error) {
       console.error('Error loading giveaway winner:', error);
+    }
+  };
+
+  // ── Giveaway auto-join via StreamElements chat ──
+  const activeGiveawayRef = { current: null as { id: string; command: string } | null };
+
+  const loadActiveGiveawayCommand = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('giveaways')
+        .select('id, command')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+      activeGiveawayRef.current = data ? { id: data.id, command: data.command } : null;
+    } catch (error) {
+      console.error('Error loading active giveaway:', error);
+    }
+  };
+
+  const handleGiveawayCommand = async (msg: SEChatMessage) => {
+    const giveaway = activeGiveawayRef.current;
+    if (!giveaway) return;
+
+    const trimmed = msg.message.trim().toLowerCase();
+    if (trimmed !== giveaway.command.toLowerCase()) return;
+
+    try {
+      await supabase
+        .from('giveaway_participants')
+        .upsert(
+          {
+            giveaway_id: giveaway.id,
+            username: msg.display_name || msg.username,
+            user_id: msg.username.toLowerCase(),
+            profile_image_url: '',
+          },
+          { onConflict: 'giveaway_id,user_id' }
+        );
+    } catch (error) {
+      // Silently ignore duplicate entries
     }
   };
 
