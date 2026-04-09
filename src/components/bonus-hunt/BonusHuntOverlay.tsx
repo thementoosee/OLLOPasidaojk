@@ -232,7 +232,7 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
   const scrollOffset = useRef(0);
 
   useEffect(() => {
-    if (bonuses.length < 3 || isOpening) return;
+    if (bonuses.length < 3) return;
     const speed = 30; // pixels per second
     let lastTime = 0;
     const tick = (now: number) => {
@@ -248,26 +248,7 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
     };
     scrollRaf.current = requestAnimationFrame(tick);
     return () => { cancelAnimationFrame(scrollRaf.current); };
-  }, [bonuses.length, isOpening]);
-
-  /* ── Opening mode: center the active card ── */
-  useEffect(() => {
-    if (!isOpening || currentIndex < 0) return;
-    const track = scrollTrackRef.current;
-    const list = bonusListRef.current;
-    if (!track || !list) return;
-    const containerH = list.clientHeight;
-    const cardH = 82;
-    const gap = 6;
-    const stride = cardH + gap;
-    const targetY = currentIndex * stride - (containerH / 2) + (cardH / 2);
-    const from = track.style.transform || 'translateY(0px)';
-    track.style.transform = `translateY(-${targetY}px)`;
-    track.animate(
-      [{ transform: from }, { transform: `translateY(-${targetY}px)` }],
-      { duration: 500, easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' }
-    );
-  }, [isOpening, currentIndex]);
+  }, [bonuses.length]);
 
   return (
     <div className="bht11" style={{ fontFamily: "'Inter', sans-serif", fontSize: '15px', width: '100%', height: '100%', overflow: 'hidden' }}>
@@ -405,13 +386,6 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
               );
             };
             if (bonuses.length === 0) return null;
-            if (isOpening) {
-              return (
-                <div key="compact-opening" ref={scrollTrackRef} className="bht-compact-track">
-                  {bonuses.map((b, i) => renderCompactCard(b, i, b.id || i))}
-                </div>
-              );
-            }
             if (bonuses.length < 3) {
               return (
                 <div key="compact-static" className="bht-compact-track">
