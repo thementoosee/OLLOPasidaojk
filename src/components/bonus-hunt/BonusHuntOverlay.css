@@ -509,3 +509,84 @@
 .bht-cpt-card--super .bht-cpt-card-name {
   color: #fde68a;
 }
+
+/* ── Opening mode: shorter bonus list ── */
+.bht11--opening .bht11-list-section {
+  flex: 0 1 auto;
+  max-height: 180px;
+}
+
+/* ═══════════════════════════════════════════════════════
+   6. Best Slot Card (opening mode)
+   ═══════════════════════════════════════════════════════ */
+.bht-best-slot {
+  flex-shrink: 0;
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  margin: 6px 4px 8px;
+  padding: 8px;
+  background: linear-gradient(135deg, rgba(15,20,40,0.9) 0%, rgba(10,14,30,0.85) 100%);
+  border: 1px solid rgba(96,165,250,0.2);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+.bht-best-slot-img-wrap {
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(0,0,0,0.4);
+}
+.bht-best-slot-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.bht-best-slot-img-ph {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1a1f3a, #0e1225);
+}
+.bht-best-slot-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  min-width: 0;
+}
+.bht-best-slot-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.bht-best-slot-label {
+  font-size: 0.65em;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.45);
+}
+.bht-best-slot-value {
+  font-size: 0.85em;
+  font-weight: 800;
+  color: rgba(255,255,255,0.85);
+  text-align: right;
+}
+.bht-best-slot-value--payout {
+  color: #4ade80;
+}
+.bht-best-slot-value--multi {
+  color: #fbbf24;
+}
+.bht-best-slot-value--big {
+  color: #f97316;
+}
+.bht-best-slot-value--huge {
+  color: #ef4444;
+  text-shadow: 0 0 6px rgba(239,68,68,0.5);
+}

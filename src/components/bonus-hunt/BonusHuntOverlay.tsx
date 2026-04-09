@@ -457,6 +457,44 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
           })()}
         </div>
       </div>
+
+      {/* ═══ 6. Best Slot (opening mode only) ═══ */}
+      {c.bonusOpening && (() => {
+        const openedBonuses = bonuses.filter(b => b.opened);
+        if (openedBonuses.length === 0) return null;
+        const best = openedBonuses.reduce((a, b) => {
+          const mA = a.multiplier != null ? a.multiplier : ((Number(a.betSize) || 1) > 0 ? (Number(a.payout) || 0) / (Number(a.betSize) || 1) : 0);
+          const mB = b.multiplier != null ? b.multiplier : ((Number(b.betSize) || 1) > 0 ? (Number(b.payout) || 0) / (Number(b.betSize) || 1) : 0);
+          return mB > mA ? b : a;
+        });
+        const bestPayout = Number(best.payout) || 0;
+        const bestBet = Number(best.betSize) || 0;
+        const bestMulti = best.multiplier != null ? best.multiplier : (bestBet > 0 ? bestPayout / bestBet : 0);
+        return (
+          <div className="bht-best-slot">
+            <div className="bht-best-slot-img-wrap">
+              {best.slot?.image ? (
+                <img src={best.slot.image} alt={best.slotName} className="bht-best-slot-img"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+              ) : <div className="bht-best-slot-img-ph" />}
+            </div>
+            <div className="bht-best-slot-info">
+              <div className="bht-best-slot-row">
+                <span className="bht-best-slot-label">PAYOUT</span>
+                <span className="bht-best-slot-value bht-best-slot-value--payout">{currency}{bestPayout.toFixed(2)}</span>
+              </div>
+              <div className="bht-best-slot-row">
+                <span className="bht-best-slot-label">MULTI</span>
+                <span className={`bht-best-slot-value bht-best-slot-value--multi${bestMulti >= 100 ? ' bht-best-slot-value--huge' : bestMulti >= 50 ? ' bht-best-slot-value--big' : ''}`}>{bestMulti.toFixed(1)}x</span>
+              </div>
+              <div className="bht-best-slot-row">
+                <span className="bht-best-slot-label">BET</span>
+                <span className="bht-best-slot-value">{currency}{bestBet.toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
