@@ -26,9 +26,9 @@ export function MainStreamOverlay() {
   const exitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const enterStartTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cleanupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const EXIT_DURATION_MS = 700;
-  const SWITCH_DELAY_MS = 400;
-  const ENTER_DURATION_MS = 700;
+  const EXIT_DURATION_MS = 1100;
+  const SWITCH_DELAY_MS = 800;
+  const ENTER_DURATION_MS = 1800;
 
   useEffect(() => {
     initializeOverlays();
@@ -357,14 +357,14 @@ export function MainStreamOverlay() {
             opacity: 1;
           }
           to {
-            transform: translateX(-100%);
+            transform: translateX(-110%);
             opacity: 0;
           }
         }
 
-        @keyframes slideInFromRight {
+        @keyframes slideInFromLeft {
           from {
-            transform: translateX(100%);
+            transform: translateX(-110%);
             opacity: 0;
           }
           to {
@@ -374,11 +374,11 @@ export function MainStreamOverlay() {
         }
 
         .slide-in-left-overlay {
-          animation: slideInFromRight 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+          animation: slideInFromLeft 1.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
 
         .slide-out-overlay {
-          animation: slideOutToLeft 0.7s cubic-bezier(0.55, 0, 1, 0.45) forwards;
+          animation: slideOutToLeft 1.1s cubic-bezier(0.4, 0, 0.6, 1) forwards;
         }
 
         .overlay-layer {
