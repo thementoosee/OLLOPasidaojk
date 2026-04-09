@@ -405,7 +405,6 @@
   object-fit: cover;
   object-position: center top;
   display: block;
-  transform: scale(0.5);
 }
 .bht-cpt-card-img-ph {
   width: 100%;
@@ -426,8 +425,6 @@
   gap: 4px;
   padding: 10px 14px;
   background: linear-gradient(90deg, rgba(6,10,32,0.95) 0%, rgba(6,10,32,0.82) 40%, rgba(6,10,32,0.3) 65%, transparent 100%);
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
   overflow: hidden;
   border-radius: 12px;
 }
