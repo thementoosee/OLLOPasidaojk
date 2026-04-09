@@ -391,7 +391,7 @@ export function Dashboard() {
       } else if (type === 'bonus_hunt') {
         const { data: activeHunt } = await supabase
           .from('bonus_hunts')
-          .select('id')
+          .select('id, status')
           .in('status', ['active', 'opening'])
           .order('created_at', { ascending: false })
           .limit(1)
@@ -399,9 +399,15 @@ export function Dashboard() {
 
         if (activeHunt) {
           console.log('[Dashboard] Activating bonus hunt:', activeHunt.id);
+          // If hunt is in opening mode, switch it back to active (hunt mode)
+          const updates: Record<string, unknown> = { show_on_main_overlay: true };
+          if (activeHunt.status === 'opening') {
+            updates.status = 'active';
+            updates.updated_at = new Date().toISOString();
+          }
           await supabase
             .from('bonus_hunts')
-            .update({ show_on_main_overlay: true })
+            .update(updates)
             .eq('id', activeHunt.id);
         }
       } else if (type === 'bonus_opening') {
