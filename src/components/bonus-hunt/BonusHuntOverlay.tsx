@@ -107,11 +107,11 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
 
   // Slot presets: [translateX, translateZ, rotateY, scale, opacity, blur]
   const SLOTS: [number, number, number, number, number, number][] = [
-    [-170, -120,  35, 0.65, 0.3, 1],
-    [ -95,  -50,  20, 0.85, 0.7, 0],
+    [-170, -120,  45, 0.65, 0.3, 1],
+    [ -95,  -50,  25, 0.85, 0.7, 0],
     [   0,   20,   0, 1,    1,   0],
-    [  95,  -50, -20, 0.85, 0.7, 0],
-    [ 170, -120, -35, 0.65, 0.3, 1],
+    [  95,  -50, -25, 0.85, 0.7, 0],
+    [ 170, -120, -45, 0.65, 0.3, 1],
   ];
 
   const buildTfm = (tx: number, tz: number, ry: number, sc: number) =>
@@ -288,7 +288,7 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
             {bonuses.map((bonus, bIdx) => (
               <div key={bonus.id || `card-${bonus.slotName}-${bIdx}`}
                 data-idx={bIdx}
-                className="bht-carousel-card">
+                className={`bht-carousel-card${bonus.isSuperBonus ? ' bht-stack-card--super' : ''}${(bonus.isExtremeBonus || bonus.isExtreme) ? ' bht-stack-card--extreme' : ''}`}>
                 <div className="bht-stack-card-inner">
                   <div className="bht-stack-card-img-wrap">
                     {bonus.slot?.image ? (
