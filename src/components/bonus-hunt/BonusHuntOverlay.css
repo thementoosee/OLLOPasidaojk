@@ -369,6 +369,9 @@
   border-radius: 12px;
   border: 1px solid rgba(96,165,250,0.15);
 }
+.bht11:not(.bht11--opening) .bht-cpt-card {
+  height: 96px;
+}
 .bht-cpt-card--active {
   border-color: rgba(134,239,172,0.6);
   box-shadow: 0 0 10px 1px rgba(134,239,172,0.2);
