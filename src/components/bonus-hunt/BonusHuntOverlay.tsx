@@ -94,9 +94,13 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
      ════════════════════════════════════════════════════════════════ */
   const [carouselIdx, setCarouselIdx] = useState(0);
   useEffect(() => {
+    console.log('[BonusHuntWidget] MOUNT — carousel effect. bonuses:', bonuses.length);
     if (bonuses.length < 2) return;
     const id = setInterval(() => setCarouselIdx(i => (i + 1) % bonuses.length), 2500);
-    return () => clearInterval(id);
+    return () => {
+      console.log('[BonusHuntWidget] UNMOUNT — clearing carousel interval');
+      clearInterval(id);
+    };
   }, [bonuses.length]);
 
   /* ─── Current bonus (first not-opened) ─── */
@@ -189,7 +193,8 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
            ═══════════════════════════════════════════════════════════ */}
       {bonuses.length > 0 && (
         <div className="bht11-stack-section">
-          <div className={`bht-stack${!isOpening ? ' bht-stack--spinning' : ''}`}>
+          <div className={`bht-stack${!isOpening ? ' bht-stack--spinning' : ''}`}
+            style={{ perspective: '1000px', perspectiveOrigin: '50% 50%' }}>
             {(() => {
               const total = bonuses.length;
               if (total === 0) return null;
@@ -207,7 +212,12 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
                 const posCls = posMap[String(dist)] || 'bht-stack-card--hidden';
                 return (
                   <div key={`stk-${bIdx}`}
-                    className={`bht-stack-card ${posCls}${bonus.opened ? ' bht-stack-card--opened' : ''}${bonus.isSuperBonus ? ' bht-stack-card--super' : ''}${(bonus.isExtremeBonus || bonus.isExtreme) ? ' bht-stack-card--extreme' : ''}`}>
+                    className={`bht-stack-card ${posCls}${bonus.opened ? ' bht-stack-card--opened' : ''}${bonus.isSuperBonus ? ' bht-stack-card--super' : ''}${(bonus.isExtremeBonus || bonus.isExtreme) ? ' bht-stack-card--extreme' : ''}`}
+                    style={{
+                      transition: 'transform 0.8s cubic-bezier(0.25,0.46,0.45,0.94), opacity 0.8s cubic-bezier(0.25,0.46,0.45,0.94), filter 0.8s cubic-bezier(0.25,0.46,0.45,0.94), z-index 0s 0.4s',
+                      transformStyle: 'preserve-3d',
+                      willChange: 'transform, opacity, filter',
+                    }}>
                     <div className="bht-stack-card-inner">
                       <div className="bht-stack-card-img-wrap">
                         {bonus.slot?.image ? (
