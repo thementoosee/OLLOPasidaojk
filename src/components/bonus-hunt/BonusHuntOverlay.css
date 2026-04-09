@@ -525,7 +525,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  margin: 6px 4px 4px;
+  margin: auto 4px 4px;
   padding: 10px;
   background: linear-gradient(135deg, #1a1500 0%, #261d00 50%, #1a1500 100%);
   border: 1.5px solid rgba(234,179,8,0.35);
