@@ -370,7 +370,7 @@
   border: 1px solid rgba(96,165,250,0.15);
 }
 .bht11:not(.bht11--opening) .bht-cpt-card {
-  height: 110px;
+  height: 130px;
 }
 .bht-cpt-card--active {
   border-color: rgba(134,239,172,0.6);
@@ -403,9 +403,8 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center top;
+  object-position: center center;
   display: block;
-  transform: scale(0.9);
 }
 .bht-cpt-card-img-ph {
   width: 100%;
