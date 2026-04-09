@@ -518,20 +518,20 @@
   font-size: 0.78em;
 }
 .bht11:not(.bht11--opening) .bht-cpt-card-bet {
+  position: absolute;
+  top: 6px;
+  left: 8px;
   font-weight: 800;
   color: #93c5fd;
+  background: rgba(6,10,32,0.85);
+  border-radius: 6px;
+  font-size: 1em;
+  padding: 1px 8px 1px 8px;
   white-space: nowrap;
   text-shadow: 0 1px 4px rgba(0,0,0,1), 0 0 8px rgba(0,0,0,0.5);
-  background: transparent;
-  padding: 0;
-  border-radius: 0;
-  font-size: 1em;
-  /* Hide "BET " label by using negative text-indent */
-  text-indent: -2.2em;
-  overflow: hidden;
-  display: inline-block;
-  width: auto;
-  max-width: 4em;
+  z-index: 3;
+  min-width: 2.2em;
+  text-align: center;
 }
 .bht-cpt-card-bet {
   font-weight: 800;
