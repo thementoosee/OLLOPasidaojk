@@ -253,7 +253,6 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
               </div>
             ))}
           </div>
-          </div>
           {(() => {
             const total = bonuses.length;
             const opened = bonuses.filter(b => b.opened).length;
