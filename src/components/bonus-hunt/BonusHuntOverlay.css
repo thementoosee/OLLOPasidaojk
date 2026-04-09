@@ -58,8 +58,8 @@
 /* ── 2. Stats Row (glassmorphism) ── */
 .bht11-stats-row {
   display: flex;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: 6px;
+  margin-bottom: 4px;
 }
 .bht11-stat-card {
   flex: 1;
@@ -69,8 +69,8 @@
   background: linear-gradient(135deg, rgba(96,165,250,0.12) 0%, rgba(59,130,246,0.06) 100%);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border-radius: 12px;
-  padding: 10px 14px;
+  border-radius: 10px;
+  padding: 4px 10px;
   border: 1px solid rgba(96,165,250,0.22);
   position: relative;
   overflow: hidden;
@@ -86,7 +86,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 0px;
 }
 .bht11-stat-card-label {
   font-size: 0.55em;
@@ -97,7 +97,7 @@
   opacity: 0.85;
 }
 .bht11-stat-card-value {
-  font-size: 1.2em;
+  font-size: 1.05em;
   font-weight: 900;
   color: #ffffff;
   text-shadow: 0 0 12px rgba(96,165,250,0.3);
@@ -107,31 +107,32 @@
 .bht11-counts-col {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-bottom: 10px;
+  gap: 4px;
+  margin-bottom: 4px;
 }
 .bht11-count-bar {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   background: rgba(15,21,53,0.85);
-  border-radius: 12px;
-  padding: 10px 16px;
+  border-radius: 10px;
+  padding: 4px 12px;
   border: 1.5px solid rgba(96,165,250,0.18);
+  overflow: hidden;
 }
 .bht11-count-bar-icon {
-  font-size: 1em;
+  font-size: 0.85em;
   flex-shrink: 0;
 }
 .bht11-count-bar-label {
-  font-size: 0.72em;
+  font-size: 0.65em;
   font-weight: 800;
   letter-spacing: 1.5px;
   text-transform: uppercase;
   color: #93c5fd;
 }
 .bht11-count-bar-value {
-  font-size: 1.15em;
+  font-size: 1em;
   font-weight: 900;
   color: #ffffff;
   margin-left: auto;
@@ -152,7 +153,7 @@
 }
 .bht11-count-bar-row {
   display: flex;
-  gap: 6px;
+  gap: 4px;
 }
 .bht11-count-bar-row .bht11-count-bar {
   flex: 1;
