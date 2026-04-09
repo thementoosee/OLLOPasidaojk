@@ -1,7 +1,5 @@
 import React, { useMemo, useEffect, useLayoutEffect, useRef, useState, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
-import { avatarEvents } from '../../systems/avatar/AvatarEventBus';
-import type { CardPosition } from '../../systems/avatar/types';
 import './BonusHuntOverlay.css';
 
 /* ═══════════════════════════════════════════════════════
@@ -209,110 +207,23 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
     prevCountRef.current = bonuses.length;
   }, [bonuses.length, positionAll]);
 
-  // Helper for avatar events
-  const getCardPosition = useCallback((_index: number, _total: number): CardPosition => {
-    return { x: 0, y: -0.3, offset: 0 };
-  }, []);
-
   // Auto-rotate
   useEffect(() => {
     if (bonuses.length < 2 || isOpening) return;
     const id = setInterval(() => {
-      const prevCenter = centerRef.current;
       centerRef.current = (centerRef.current + 1) % bonuses.length;
-      const newCenter = centerRef.current;
-      positionAll(newCenter, true);
-
-      const pos: CardPosition = { x: 0, y: -0.3, offset: 0 };
-      avatarEvents.emit('cardMoved', {
-        direction: 'right',
-        fromIndex: prevCenter,
-        toIndex: newCenter,
-        velocity: 1,
-      });
-      avatarEvents.emit('cardFocused', {
-        index: newCenter,
-        position: pos,
-        slotName: bonuses[newCenter]?.slotName || bonuses[newCenter]?.slot?.name,
-      });
+      positionAll(centerRef.current, true);
     }, 2500);
     return () => clearInterval(id);
-  }, [bonuses.length, isOpening, positionAll, bonuses]);
+  }, [bonuses.length, isOpening, positionAll]);
 
   // Opening mode: snap to current with animation
   useEffect(() => {
     if (isOpening && currentIndex >= 0) {
-      const prevCenter = centerRef.current;
       centerRef.current = currentIndex;
       positionAll(currentIndex, true);
-
-      const direction = currentIndex > prevCenter ? 'right' : 'left';
-      const pos: CardPosition = { x: 0, y: -0.3, offset: 0 };
-      avatarEvents.emit('cardMoved', {
-        direction,
-        fromIndex: prevCenter,
-        toIndex: currentIndex,
-        velocity: 1.5,
-      });
-      avatarEvents.emit('cardFocused', {
-        index: currentIndex,
-        position: pos,
-        slotName: bonuses[currentIndex]?.slotName || bonuses[currentIndex]?.slot?.name,
-      });
     }
-  }, [isOpening, currentIndex, positionAll, bonuses]);
-
-  /*
-   * Detect when a bonus gets opened with a result.
-   * Triggers cardOpened / bigWin / rarePull / suspenseMoment for the avatar.
-   */
-  const prevOpenedRef = useRef<Set<string>>(new Set());
-  useEffect(() => {
-    const prevOpened = prevOpenedRef.current;
-    const nowOpened = new Set<string>();
-    for (const b of bonuses) {
-      if (b.opened && b.id) nowOpened.add(b.id);
-    }
-
-    // Find newly opened bonuses
-    for (const id of nowOpened) {
-      if (!prevOpened.has(id)) {
-        const bonus = bonuses.find((bb) => bb.id === id);
-        if (!bonus) continue;
-        const bet = Number(bonus.betSize) || 0;
-        const payout = Number(bonus.payout) || 0;
-        const multi = bet > 0 ? payout / bet : 0;
-        const idx = bonuses.indexOf(bonus);
-
-        avatarEvents.emit('cardOpened', {
-          index: idx,
-          slotName: bonus.slotName || bonus.slot?.name,
-          multiplier: multi,
-        });
-
-        // Big win reactions
-        if (multi >= 100) {
-          avatarEvents.emit('bigWin', { multiplier: multi, amount: payout });
-        }
-
-        // Rare pull (super / extreme bonus)
-        if (bonus.isSuperBonus) {
-          avatarEvents.emit('rarePull', { slotName: bonus.slotName, type: 'super' });
-        }
-        if (bonus.isExtremeBonus || bonus.isExtreme) {
-          avatarEvents.emit('rarePull', { slotName: bonus.slotName, type: 'extreme' });
-        }
-
-        // Last bonus suspense
-        const remaining = bonuses.filter((bb) => !bb.opened);
-        if (remaining.length <= 1) {
-          avatarEvents.emit('suspenseMoment', { type: 'lastBonus' });
-        }
-      }
-    }
-
-    prevOpenedRef.current = nowOpened;
-  }, [bonuses]);
+  }, [isOpening, currentIndex, positionAll]);
 
   return (
     <div className="bht11" style={{ fontFamily: "'Inter', sans-serif", fontSize: '15px', width: '100%', height: '100%', overflow: 'hidden' }}>
@@ -478,9 +389,6 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
 
 const MemoizedWidget = React.memo(BonusHuntWidget);
 
-/* Lazy-load the avatar canvas to avoid blocking initial render */
-const AvatarCanvas = React.lazy(() => import('../avatar/AvatarCanvas'));
-
 /* ═══════════════════════════════════════════════════════
    Supabase Data Bridge
    ═══════════════════════════════════════════════════════ */
@@ -588,33 +496,9 @@ export function BonusHuntOverlay({ huntId, embedded = false }: BonusHuntOverlayP
 
   if (!hunt) return null;
 
-  /* Avatar model URL — configure via environment or hardcode your model path.
-     Supports any humanoid GLB/GLTF (Mixamo, ReadyPlayerMe, VRM-exported, etc.) */
-  const avatarModelUrl = (import.meta as any).env?.VITE_AVATAR_MODEL_URL || '/models/avatar.glb';
-
   return (
     <div style={{ width: '288px', height: '720px', position: 'relative', marginTop: '0px', marginLeft: '62px' }}>
       <MemoizedWidget config={config} />
-
-      {/* 3D Avatar overlay — positioned to the right of the widget */}
-      <React.Suspense fallback={null}>
-        <AvatarCanvas
-          modelUrl={avatarModelUrl}
-          width="280px"
-          height="350px"
-          scale={1}
-          position={[0, -0.8, 0]}
-          rotation={[0, 0, 0]}
-          fov={35}
-          cameraPosition={[0, 1.2, 3]}
-          style={{
-            position: 'absolute',
-            right: '-290px',
-            bottom: '20px',
-            zIndex: 10,
-          }}
-        />
-      </React.Suspense>
     </div>
   );
 }
