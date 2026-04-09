@@ -96,7 +96,7 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
             { transform: 'translateX(-110%)', opacity: 0 },
             { transform: 'translateX(0)', opacity: 1 },
           ], { duration: 1800, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'forwards' });
-        }, 1300);
+        }, 800);
       };
   }, [c.bonusOpening]);
 
