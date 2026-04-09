@@ -431,10 +431,11 @@
 .bht11:not(.bht11--opening) .bht-cpt-card-info {
   justify-content: flex-end;
   gap: 1px;
-  padding: 1px 0 2px 0;
-  background: linear-gradient(180deg, rgba(6,10,32,0.08) 0%, rgba(6,10,32,0.14) 46%, rgba(6,10,32,0.9) 47%, rgba(3,6,20,0.96) 100%);
+  padding: 1px 6px 1px 6px;
+  background: linear-gradient(180deg, rgba(6,10,32,0.08) 0%, rgba(6,10,32,0.14) 35%, rgba(6,10,32,0.95) 50%, rgba(3,6,20,0.98) 100%);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
+  height: auto;
 }
 .bht11:not(.bht11--opening) .bht-cpt-card-row1,
 .bht11:not(.bht11--opening) .bht-cpt-card-row2 {
