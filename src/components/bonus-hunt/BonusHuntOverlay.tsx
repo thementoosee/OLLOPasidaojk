@@ -421,20 +421,12 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
                         onError={(e) => { const t = e.target as HTMLImageElement; t.src = ''; t.style.display = 'none'; }} />
                     ) : <div className="bht-cpt-card-img-ph" />}
                   </div>
+                  <span className="bht-cpt-card-bet" style={{ position: 'absolute', top: 6, left: 8, zIndex: 3 }}>{currency}{bet.toFixed(2)}</span>
                   <div className="bht-cpt-card-info" style={{ position: 'absolute', left: 0, right: 0, bottom: 0 }}>
                     <div className="bht-cpt-card-row1">
                       <span className="bht-cpt-card-idx">#{idx + 1}</span>
                       <span className="bht-cpt-card-name">{bonus.slotName || bonus.slot?.name}</span>
                     </div>
-                  </div>
-                  <div className="bht-cpt-card-row2">
-                    <span className="bht-cpt-card-bet">BET {currency}{bet.toFixed(2)}</span>
-                    {bonus.opened && (
-                      <>
-                        <span className="bht-cpt-card-payout">{currency}{payout.toFixed(2)}</span>
-                        <span className={`bht-cpt-card-multi${multi >= 100 ? ' bht-cpt-card-multi--huge' : multi >= 50 ? ' bht-cpt-card-multi--big' : ''}`}>{multi.toFixed(1)}x</span>
-                      </>
-                    )}
                   </div>
                 </div>
               );
