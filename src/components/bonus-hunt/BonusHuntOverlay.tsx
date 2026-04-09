@@ -84,16 +84,17 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
     prevModeRef.current = isOpeningNow;
     const el = widgetContentRef.current;
     if (!el) return;
-    // Slide out left, then slide in from right
+    // Slow slide out to the left until fully gone
     el.animate([
       { transform: 'translateX(0)', opacity: 1 },
-      { transform: 'translateX(-100%)', opacity: 0 },
-    ], { duration: 350, easing: 'cubic-bezier(0.55, 0, 1, 0.45)', fill: 'forwards' })
+      { transform: 'translateX(-110%)', opacity: 0 },
+    ], { duration: 800, easing: 'cubic-bezier(0.4, 0, 0.6, 1)', fill: 'forwards' })
       .onfinish = () => {
+        // Then slowly slide in from the left to center
         el.animate([
-          { transform: 'translateX(100%)', opacity: 0 },
+          { transform: 'translateX(-110%)', opacity: 0 },
           { transform: 'translateX(0)', opacity: 1 },
-        ], { duration: 350, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'forwards' });
+        ], { duration: 800, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'forwards' });
       };
   }, [c.bonusOpening]);
 
