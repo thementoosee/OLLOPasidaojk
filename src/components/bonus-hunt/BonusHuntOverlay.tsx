@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { supabase } from '../../lib/supabase';
+import './BonusHuntOverlay.css';
 
 interface BonusHunt {
   id: string;
@@ -35,12 +36,291 @@ interface BonusHuntOverlayProps {
   embedded?: boolean;
 }
 
+interface Bonus {
+  id?: string;
+  slotName?: string;
+  slot?: { name?: string; image?: string };
+  betSize?: number;
+  payout?: number;
+  opened?: boolean;
+  isSuperBonus?: boolean;
+  isExtremeBonus?: boolean;
+  isExtreme?: boolean;
+}
+
+interface BonusHuntConfig {
+  bonuses?: Bonus[];
+  currency?: string;
+  startMoney?: number;
+  stopLoss?: number;
+  bonusOpening?: boolean;
+}
+
+/* ═══════════════════════════════════════════════════════
+   V11 "Fever" Bonus Hunt Widget — EXACT REPLICATION
+   ═══════════════════════════════════════════════════════ */
+function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
+  const c = config || {};
+  const bonuses = c.bonuses || [];
+  const currency = c.currency || '€';
+  const startMoney = Number(c.startMoney) || 0;
+  const stopLoss = Number(c.stopLoss) || 0;
+
+  /* ─── Derived stats ─── */
+  const stats = useMemo(() => {
+    const totalBetAll = bonuses.reduce((s, b) => s + (Number(b.betSize) || 0), 0);
+    const openedBonuses = bonuses.filter(b => b.opened);
+    const totalBetOpened = openedBonuses.reduce((s, b) => s + (Number(b.betSize) || 0), 0);
+    const totalWin = openedBonuses.reduce((s, b) => s + (Number(b.payout) || 0), 0);
+    const totalBetRemaining = Math.max(totalBetAll - totalBetOpened, 0);
+    const superCount = bonuses.filter(b => b.isSuperBonus).length;
+    const extremeCount = bonuses.filter(b => b.isExtremeBonus || b.isExtreme).length;
+
+    const target = Math.max(startMoney - stopLoss, 0);
+    const breakEven = totalBetAll > 0 ? target / totalBetAll : 0;
+    const remaining = Math.max(target - totalWin, 0);
+    const liveBE = totalBetRemaining > 0 ? remaining / totalBetRemaining : 0;
+
+    return { totalBetAll, totalWin, superCount, extremeCount, breakEven, liveBE, openedCount: openedBonuses.length };
+  }, [bonuses, startMoney, stopLoss]);
+
+  /* ════════════════════════════════════════════════════════════════
+     ██  AUTO-ROTATING CAROUSEL — THIS IS THE KEY PART  ██
+     
+     carouselIdx is a simple counter that increments every 2.5s.
+     It drives which position class each card gets.
+     The SAME DOM elements persist — only their className changes.
+     CSS transition handles the smooth 3D animation.
+     ════════════════════════════════════════════════════════════════ */
+  const [carouselIdx, setCarouselIdx] = useState(0);
+  useEffect(() => {
+    if (bonuses.length < 2) return;
+    const id = setInterval(() => setCarouselIdx(i => (i + 1) % bonuses.length), 2500);
+    return () => clearInterval(id);
+  }, [bonuses.length]);
+
+  /* ─── Current bonus (first not-opened) ─── */
+  const currentBonus = bonuses.find(b => !b.opened);
+  const currentIndex = currentBonus ? bonuses.indexOf(currentBonus) : -1;
+  const isOpening = !!c.bonusOpening && currentIndex >= 0;
+
+  const huntTitle = c.bonusOpening ? 'BONUS OPENING' : 'BONUS HUNT';
+
+  const rootStyle: React.CSSProperties = {
+    fontFamily: "'Inter', sans-serif",
+    fontSize: '15px',
+    width: '100%',
+    height: '100%',
+    overflow: 'hidden',
+  };
+
+  return (
+    <div className="bht11" style={rootStyle}>
+
+      {/* ═══ 1. Header ═══ */}
+      <div className="bht11-header">
+        <div className="bht11-header-left">
+          <div className="bht11-header-titles">
+            <span className="bht11-header-title">{huntTitle}</span>
+            <span className="bht11-header-subtitle">fever</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ═══ 2. Stats Row ═══ */}
+      <div className="bht11-stats-row">
+        <div className="bht11-stat-card">
+          <div className="bht11-stat-card-text">
+            <span className="bht11-stat-card-label">START</span>
+            <span className="bht11-stat-card-value">{currency}{startMoney.toFixed(2)}</span>
+          </div>
+        </div>
+        <div className="bht11-stat-card">
+          <div className="bht11-stat-card-text">
+            <span className="bht11-stat-card-label">BREAKEVEN</span>
+            <span className="bht11-stat-card-value">{(c.bonusOpening ? stats.liveBE : stats.breakEven).toFixed(0)}x</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ═══ 3. Counts ═══ */}
+      <div className="bht11-counts-col">
+        {(stats.superCount > 0 || stats.extremeCount > 0) && (
+          <div className="bht11-count-bar-row">
+            {stats.superCount > 0 && (
+              <div className="bht11-count-bar bht11-count-bar--super">
+                <span className="bht11-count-bar-icon">⚡</span>
+                <span className="bht11-count-bar-label">SUPER</span>
+                <span className="bht11-count-bar-value">{stats.superCount}</span>
+              </div>
+            )}
+            {stats.extremeCount > 0 && (
+              <div className="bht11-count-bar bht11-count-bar--extreme">
+                <span className="bht11-count-bar-icon">🔥</span>
+                <span className="bht11-count-bar-label">EXTREME</span>
+                <span className="bht11-count-bar-value">{stats.extremeCount}</span>
+              </div>
+            )}
+          </div>
+        )}
+        <div className="bht11-count-bar">
+          <span className="bht11-count-bar-icon">🎁</span>
+          <span className="bht11-count-bar-label">BONUSES</span>
+          <span className="bht11-count-bar-value">{bonuses.length}</span>
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════════
+           4. 3D ROTATING CARD STACK
+           
+           CRITICAL RULES — DO NOT VIOLATE:
+           
+           1. ALL bonuses are ALWAYS rendered. No .filter() or .slice().
+           2. key={`stk-${bIdx}`} — bIdx is the ARRAY INDEX. NEVER 
+              include carouselIdx or any changing value in the key.
+           3. Only the className changes between renders. The DOM 
+              element stays the same. CSS transition does the rest.
+           4. Cards that are far from center get --hidden class 
+              (opacity 0), but they STILL EXIST in the DOM.
+           
+           If you violate any of these rules, cards will TELEPORT
+           instead of smoothly animating. The transition ONLY works
+           when the same DOM element changes its class attribute.
+           ═══════════════════════════════════════════════════════════ */}
+      {bonuses.length > 0 && (
+        <div className="bht11-stack-section">
+          <div className={`bht-stack${!isOpening ? ' bht-stack--spinning' : ''}`}>
+            {(() => {
+              const total = bonuses.length;
+              if (total === 0) return null;
+              const ci = isOpening && currentIndex >= 0 ? currentIndex : carouselIdx % total;
+              const posMap: Record<string, string> = {
+                '-2': 'bht-stack-card--far-left',
+                '-1': 'bht-stack-card--left',
+                '0':  'bht-stack-card--center',
+                '1':  'bht-stack-card--right',
+                '2':  'bht-stack-card--far-right'
+              };
+              return bonuses.map((bonus, bIdx) => {
+                const rawDist = ((bIdx - ci) % total + total) % total;
+                const dist = rawDist <= Math.floor(total / 2) ? rawDist : rawDist - total;
+                const posCls = posMap[String(dist)] || 'bht-stack-card--hidden';
+                return (
+                  <div key={`stk-${bIdx}`}
+                    className={`bht-stack-card ${posCls}${bonus.opened ? ' bht-stack-card--opened' : ''}${bonus.isSuperBonus ? ' bht-stack-card--super' : ''}${(bonus.isExtremeBonus || bonus.isExtreme) ? ' bht-stack-card--extreme' : ''}`}>
+                    <div className="bht-stack-card-inner">
+                      <div className="bht-stack-card-img-wrap">
+                        {bonus.slot?.image ? (
+                          <img src={bonus.slot.image} alt={bonus.slotName} className="bht-stack-card-img"
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                        ) : <div className="bht-stack-card-img-ph" />}
+                      </div>
+                    </div>
+                  </div>
+                );
+              });
+            })()}
+          </div>
+          {/* ── Progress bar ── */}
+          {(() => {
+            const total = bonuses.length;
+            const opened = bonuses.filter(b => b.opened).length;
+            const pct = total > 0 ? (opened / total) * 100 : 0;
+            return (
+              <div className="bht-progress">
+                <div className="bht-progress-bar">
+                  <div className="bht-progress-fill" style={{ width: `${pct}%` }} />
+                </div>
+                <span className="bht-progress-text">{opened}/{total}</span>
+              </div>
+            );
+          })()}
+        </div>
+      )}
+
+      {/* ═══ 5. Bonus List Section (Compact style) ═══ */}
+      <div className="bht11-list-section">
+        <div className="bht11-list-title">
+          <span className="bht11-list-title-icon">📋</span>
+          <span>BONUS LIST</span>
+        </div>
+        <div className="bht-bonus-list">
+          {(() => {
+            const renderCompactCard = (bonus: Bonus, idx: number, key: string | number) => {
+              const payout = Number(bonus.payout) || 0;
+              const bet = Number(bonus.betSize) || 0;
+              const multi = bet > 0 ? payout / bet : 0;
+              const isExtreme = bonus.isExtremeBonus || bonus.isExtreme;
+              const isSuper = bonus.isSuperBonus;
+              return (
+                <div key={key}
+                  className={`bht-cpt-card${idx === currentIndex ? ' bht-cpt-card--active' : ''}${bonus.opened ? ' bht-cpt-card--opened' : ''}${isSuper ? ' bht-cpt-card--super' : ''}${isExtreme ? ' bht-cpt-card--extreme' : ''}`}>
+                  <div className="bht-cpt-card-img-wrap">
+                    {bonus.slot?.image ? (
+                      <img src={bonus.slot.image} alt={bonus.slotName}
+                        className="bht-cpt-card-img"
+                        onError={(e) => { const t = e.target as HTMLImageElement; t.src = ''; t.style.display = 'none'; }} />
+                    ) : (
+                      <div className="bht-cpt-card-img-ph" />
+                    )}
+                    {isExtreme && <div className="bht-cpt-blood-drip" />}
+                    {isExtreme && <span className="bht-cpt-badge bht-cpt-badge--extreme">EXTREME</span>}
+                    {!isExtreme && isSuper && <span className="bht-cpt-badge bht-cpt-badge--super">SUPER</span>}
+                  </div>
+                  <div className="bht-cpt-card-info">
+                    <div className="bht-cpt-card-row1">
+                      <span className="bht-cpt-card-idx">#{idx + 1}</span>
+                      <span className="bht-cpt-card-name">{bonus.slotName || bonus.slot?.name}</span>
+                    </div>
+                    <div className="bht-cpt-card-row2">
+                      <span className="bht-cpt-card-bet">BET {currency}{bet.toFixed(2)}</span>
+                      {bonus.opened && (
+                        <>
+                          <span className="bht-cpt-card-payout">{currency}{payout.toFixed(2)}</span>
+                          <span className={`bht-cpt-card-multi${multi >= 100 ? ' bht-cpt-card-multi--huge' : multi >= 50 ? ' bht-cpt-card-multi--big' : ''}`}>{multi.toFixed(1)}x</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            };
+
+            if (isOpening) {
+              const cardH = 140, gap = 6, step = cardH + gap;
+              const offset = -(currentIndex * step);
+              return (
+                <div key="compact-static" className="bht-compact-track bht-compact-track--static"
+                  style={{ transform: `translateY(${offset}px)` }}>
+                  {bonuses.map((b, i) => renderCompactCard(b, i, b.id || i))}
+                </div>
+              );
+            }
+            return (
+              <div key="compact-scroll" className="bht-compact-track bht-compact-track--scroll"
+                style={{ '--bht-compact-count': bonuses.length } as React.CSSProperties}>
+                {[...bonuses, ...bonuses].map((b, i) => {
+                  const idx = i % bonuses.length;
+                  return renderCompactCard(b, idx, `${b.id || idx}-${i >= bonuses.length ? 'c' : 'o'}`);
+                })}
+              </div>
+            );
+          })()}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const MemoizedWidget = React.memo(BonusHuntWidget);
+
+/* ═══════════════════════════════════════════════════════
+   Supabase Data Bridge — fetches from DB and maps
+   to the V11 BonusHuntConfig format
+   ═══════════════════════════════════════════════════════ */
 export function BonusHuntOverlay({ huntId, embedded = false }: BonusHuntOverlayProps = {}) {
   const [hunt, setHunt] = useState<BonusHunt | null>(null);
   const [items, setItems] = useState<BonusHuntItem[]>([]);
-  const [newItemIds, setNewItemIds] = useState<Set<string>>(new Set());
-  const [removedItemIds, setRemovedItemIds] = useState<Set<string>>(new Set());
-  const [activeCardIndex, setActiveCardIndex] = useState(0);
   const previousItemIdsRef = useRef<Set<string>>(new Set());
   const currentHuntIdRef = useRef<string | null>(null);
 
@@ -135,545 +415,47 @@ export function BonusHuntOverlay({ huntId, embedded = false }: BonusHuntOverlayP
     }
   };
 
-  const loadHuntItems = async (huntId: string) => {
+  const loadHuntItems = async (hId: string) => {
     try {
       const { data, error } = await supabase
         .from('bonus_hunt_items')
         .select('*')
-        .eq('hunt_id', huntId)
+        .eq('hunt_id', hId)
         .order('order_index', { ascending: true });
 
       if (error) throw error;
 
       const newData = data || [];
-      const newIds = new Set<string>();
-      const removedIds = new Set<string>();
-      const currentIds = new Set(newData.map(item => item.id));
-
-      newData.forEach(item => {
-        if (!previousItemIdsRef.current.has(item.id) && item.status === 'pending') {
-          newIds.add(item.id);
-        }
-      });
-
-      previousItemIdsRef.current.forEach(id => {
-        if (!currentIds.has(id)) {
-          removedIds.add(id);
-        }
-      });
-
-      if (newIds.size > 0) {
-        setNewItemIds(newIds);
-        setTimeout(() => {
-          setNewItemIds(new Set());
-        }, 800);
-      }
-
-      if (removedIds.size > 0) {
-        setRemovedItemIds(removedIds);
-        setTimeout(() => {
-          setRemovedItemIds(new Set());
-          previousItemIdsRef.current = new Set(newData.map(item => item.id));
-          setItems(newData);
-        }, 500);
-      } else {
-        previousItemIdsRef.current = new Set(newData.map(item => item.id));
-        setItems(newData);
-      }
+      previousItemIdsRef.current = new Set(newData.map(item => item.id));
+      setItems(newData);
     } catch (error) {
       console.error('Error loading items:', error);
     }
   };
 
-  const hasHunt = !!hunt;
-  const isOpeningMode = hunt?.status === 'opening';
+  // Map Supabase data → V11 BonusHuntConfig
+  const config = useMemo<BonusHuntConfig>(() => ({
+    startMoney: hunt?.total_invested || 0,
+    stopLoss: 0,
+    currency: '€',
+    bonusOpening: hunt?.status === 'opening',
+    bonuses: items.map(item => ({
+      id: item.id,
+      slotName: item.slot_name,
+      slot: { name: item.slot_name, image: item.slot_image_url || '/image.png' },
+      betSize: item.payment_amount || item.bet_amount,
+      payout: item.result_amount || 0,
+      opened: item.status === 'opened',
+      isSuperBonus: item.is_super_bonus === true,
+      isExtremeBonus: item.is_extreme_bonus === true,
+    })),
+  }), [hunt, items]);
 
-  const pendingItems = items.filter(item => item.status === 'pending');
-  const openedItems = items.filter(item => item.status === 'opened');
-  const superBonusCount = items.filter(item => item.is_super_bonus === true).length;
-  const extremeBonusCount = items.filter(item => item.is_extreme_bonus === true).length;
-  const scrollingItems = items.length > 4 ? [...items, ...items] : items;
-  const progressPct = items.length > 0 ? (openedItems.length / items.length) * 100 : 0;
-
-  const breakEvenDisplay = (() => {
-    if (!hunt) return '0x';
-    if (isOpeningMode) return `${hunt.current_break_even.toFixed(0)}x`;
-    const be = hunt.opened_count > 0 ? hunt.current_break_even : hunt.initial_break_even;
-    return `${be.toFixed(0)}x`;
-  })();
-
-  // Auto-rotate card stack every 2.5s during hunt
-  useEffect(() => {
-    if (isOpeningMode || items.length <= 1) return;
-    const interval = setInterval(() => {
-      setActiveCardIndex(prev => (prev + 1) % items.length);
-    }, 2500);
-    return () => clearInterval(interval);
-  }, [isOpeningMode, items.length]);
-
-  // During opening, snap to first pending bonus
-  useEffect(() => {
-    if (!isOpeningMode) return;
-    const idx = items.findIndex(item => item.status === 'pending');
-    if (idx >= 0) setActiveCardIndex(idx);
-  }, [isOpeningMode, items]);
-
-  const currentBonusIndex = isOpeningMode ? items.findIndex(item => item.status === 'pending') : -1;
+  if (!hunt) return null;
 
   return (
-    <div className="bht-root" style={{ width: '288px', height: '720px', position: 'relative', marginTop: '0px', marginLeft: '62px' }}>
-      <style>{`
-        .bht-root {
-          --bht-text: #ffffff;
-          --bht-muted: #93c5fd;
-          --bht-accent: #60a5fa;
-          --bht-super: #eab308;
-          --bht-extreme: #ef4444;
-          --bht-current: #4ade80;
-          --bht-card-bg: rgba(15,21,53,0.85);
-          --bht-card-border: rgba(96,165,250,0.12);
-        }
-        .bht-glass-card {
-          background: linear-gradient(135deg, rgba(96,165,250,0.12), rgba(59,130,246,0.06));
-          backdrop-filter: blur(8px);
-          -webkit-backdrop-filter: blur(8px);
-          border-radius: 12px;
-          border: 1px solid rgba(96,165,250,0.15);
-          padding: 8px 12px;
-          text-align: center;
-          position: relative;
-          overflow: hidden;
-        }
-        .bht-glass-card::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 10%;
-          right: 10%;
-          height: 1px;
-          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-        }
-        .bht-stat-label {
-          display: block;
-          font-size: 0.55em;
-          font-weight: 700;
-          letter-spacing: 2px;
-          text-transform: uppercase;
-          color: var(--bht-muted);
-          margin-bottom: 2px;
-        }
-        .bht-stat-value {
-          display: block;
-          font-size: 1.2em;
-          font-weight: 900;
-          color: var(--bht-text);
-          text-shadow: 0 0 12px rgba(96,165,250,0.4);
-        }
-        .bht-count-bar {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          border-radius: 12px;
-          padding: 10px 16px;
-          font-size: 0.7em;
-          font-weight: 800;
-          text-transform: uppercase;
-          letter-spacing: 1.5px;
-          color: var(--bht-text);
-          flex: 1;
-        }
-        .bht-count-super {
-          background: rgba(234,179,8,0.12);
-          border: 1px solid rgba(234,179,8,0.3);
-        }
-        .bht-count-extreme {
-          background: rgba(239,68,68,0.12);
-          border: 1px solid rgba(239,68,68,0.3);
-        }
-        .bht-count-bonuses {
-          background: rgba(96,165,250,0.12);
-          border: 1px solid rgba(96,165,250,0.2);
-        }
-        .bht-stack-wrap {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          position: relative;
-          height: 210px;
-          perspective: 1000px;
-          perspective-origin: 50% 50%;
-          margin: 6px 0;
-          overflow: visible;
-        }
-        .bht-stack-card {
-          position: absolute;
-          width: 120px;
-          height: 190px;
-          transition: transform 0.8s cubic-bezier(0.25,0.46,0.45,0.94),
-                      opacity 0.8s cubic-bezier(0.25,0.46,0.45,0.94),
-                      filter 0.8s cubic-bezier(0.25,0.46,0.45,0.94),
-                      z-index 0s 0.4s;
-          transform-style: preserve-3d;
-          will-change: transform, opacity, filter;
-        }
-        .bht-stack-card--hidden {
-          transform: translateX(0) translateZ(-200px) rotateY(0deg) scale(0.4);
-          z-index: -1; opacity: 0; pointer-events: none;
-          filter: brightness(0.3) blur(3px);
-        }
-        .bht-stack-card--far-left {
-          transform: translateX(-170px) translateZ(-120px) rotateY(35deg) scale(0.65);
-          z-index: 0; opacity: 0.3; filter: brightness(0.45) blur(1px);
-        }
-        .bht-stack-card--left {
-          transform: translateX(-95px) translateZ(-50px) rotateY(20deg) scale(0.85);
-          z-index: 1; opacity: 0.7; filter: brightness(0.7);
-        }
-        .bht-stack-card--center {
-          transform: translateX(0) translateZ(20px) rotateY(0deg) scale(1);
-          z-index: 3; opacity: 1; filter: brightness(1);
-        }
-        .bht-stack-card--right {
-          transform: translateX(95px) translateZ(-50px) rotateY(-20deg) scale(0.85);
-          z-index: 1; opacity: 0.7; filter: brightness(0.7);
-        }
-        .bht-stack-card--far-right {
-          transform: translateX(170px) translateZ(-120px) rotateY(-35deg) scale(0.65);
-          z-index: 0; opacity: 0.3; filter: brightness(0.45) blur(1px);
-        }
-        .bht-stack-card-inner {
-          width: 100%; height: 100%; border-radius: 12px; overflow: hidden;
-          background: rgba(0,0,0,0.55);
-          border: 1.5px solid rgba(255,255,255,0.1);
-          box-shadow: 0 6px 24px rgba(0,0,0,0.6);
-        }
-        .bht-stack-card--center .bht-stack-card-inner {
-          box-shadow: 0 0 16px rgba(74,222,128,0.35), 0 6px 24px rgba(0,0,0,0.6);
-          border-color: rgba(74,222,128,0.4);
-        }
-        .bht-stack-card-img-wrap {
-          width: 100%; height: 100%; overflow: hidden; position: relative;
-        }
-        .bht-stack-img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          display: block;
-        }
-        .bht-stack-name {
-          position: absolute;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          background: linear-gradient(transparent, rgba(0,0,0,0.88));
-          padding: 18px 6px 6px;
-          text-align: center;
-          font-size: 0.55em;
-          font-weight: 800;
-          color: #fff;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-        .bht-stack-border {
-          position: absolute;
-          inset: 0;
-          border-radius: 12px;
-          pointer-events: none;
-        }
-        .bht-stack-border--super {
-          border: 2px solid var(--bht-super);
-          box-shadow: 0 0 14px rgba(234,179,8,0.35);
-        }
-        .bht-stack-border--extreme {
-          border: 2px solid var(--bht-extreme);
-          box-shadow: 0 0 14px rgba(239,68,68,0.35);
-        }
-        .bht-progress-track {
-          height: 4px;
-          border-radius: 2px;
-          background: rgba(255,255,255,0.08);
-          overflow: hidden;
-        }
-        .bht-progress-fill {
-          height: 100%;
-          border-radius: 2px;
-          background: linear-gradient(90deg, var(--bht-current), #22c55e);
-          transition: width 0.7s ease-out;
-          box-shadow: 0 0 6px rgba(74,222,128,0.4);
-        }
-        .bht-list-header {
-          font-size: 0.78em;
-          font-weight: 900;
-          letter-spacing: 2.5px;
-          text-transform: uppercase;
-          color: var(--bht-accent);
-        }
-        .bht-list-container {
-          flex: 1 1 0;
-          overflow: hidden;
-          position: relative;
-          padding: 0 12px;
-        }
-        .bht-list-track {
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-        }
-        .bht-cpt-card {
-          display: flex;
-          align-items: center;
-          background: var(--bht-card-bg);
-          border: 1px solid var(--bht-card-border);
-          border-radius: 10px;
-          padding: 5px 8px;
-          gap: 8px;
-          flex-shrink: 0;
-        }
-        .bht-cpt-img {
-          width: 38px;
-          height: 38px;
-          border-radius: 6px;
-          object-fit: cover;
-          flex-shrink: 0;
-        }
-        .bht-cpt-info {
-          flex: 1;
-          min-width: 0;
-        }
-        .bht-cpt-row1 {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-bottom: 3px;
-        }
-        .bht-cpt-name {
-          font-size: 0.65em;
-          font-weight: 800;
-          color: var(--bht-text);
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          text-transform: uppercase;
-        }
-        .bht-cpt-index {
-          font-size: 0.6em;
-          font-weight: 700;
-          color: rgba(255,255,255,0.35);
-          flex-shrink: 0;
-          margin-left: 4px;
-        }
-        .bht-cpt-row2 {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-        }
-        .bht-cpt-bet {
-          font-size: 0.6em;
-          font-weight: 700;
-          color: var(--bht-accent);
-        }
-        .bht-cpt-payout {
-          font-size: 0.6em;
-          font-weight: 700;
-        }
-        .bht-cpt-multi {
-          font-size: 0.6em;
-          font-weight: 700;
-          color: #a78bfa;
-        }
-        @keyframes bhtAutoScroll {
-          0% { transform: translateY(0); }
-          100% { transform: translateY(-50%); }
-        }
-        @keyframes bhtSlideIn {
-          from { opacity: 0; transform: translateX(-100%); }
-          to { opacity: 1; transform: translateX(0); }
-        }
-        @keyframes bhtSlideOut {
-          from { opacity: 1; transform: translateX(0); }
-          to { opacity: 0; transform: translateX(100%); }
-        }
-      `}</style>
-
-      {hasHunt && (
-        <div
-          style={{
-            width: '100%',
-            height: '100%',
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-            background: 'linear-gradient(145deg, #0a0e1a 0%, #0f1629 50%, #111d3a 100%)',
-            border: '1px solid rgba(96,165,250,0.15)',
-            borderRadius: '16px',
-          }}
-        >
-          {/* HEADER */}
-          <div style={{ textAlign: 'center', padding: '14px 0 10px', flexShrink: 0 }}>
-            <div style={{ fontSize: '1.2em', fontWeight: 900, letterSpacing: '3px', textTransform: 'uppercase', color: 'var(--bht-text)' }}>
-              {isOpeningMode ? 'BONUS OPENING' : 'BONUS HUNT'}
-            </div>
-            <div style={{ fontSize: '0.58em', fontWeight: 700, letterSpacing: '4px', textTransform: 'uppercase', color: 'var(--bht-muted)', opacity: 0.6 }}>
-              FEVER
-            </div>
-          </div>
-
-          {/* STATS ROW */}
-          <div style={{ display: 'flex', gap: '6px', padding: '0 12px', marginBottom: '8px', flexShrink: 0 }}>
-            <div className="bht-glass-card" style={{ flex: 1 }}>
-              <span className="bht-stat-label">START</span>
-              <span className="bht-stat-value">€{hunt?.total_invested.toFixed(2)}</span>
-            </div>
-            <div className="bht-glass-card" style={{ flex: 1 }}>
-              <span className="bht-stat-label">BREAKEVEN</span>
-              <span className="bht-stat-value">{breakEvenDisplay}</span>
-            </div>
-          </div>
-
-          {/* COUNT BARS */}
-          <div style={{ padding: '0 12px', marginBottom: '6px', flexShrink: 0 }}>
-            {(superBonusCount > 0 || extremeBonusCount > 0) && (
-              <div style={{ display: 'flex', gap: '6px', marginBottom: '6px' }}>
-                {superBonusCount > 0 && (
-                  <div className="bht-count-bar bht-count-super">
-                    <span>⚡</span><span>SUPER</span><span style={{ marginLeft: 'auto', fontWeight: 900 }}>{superBonusCount}</span>
-                  </div>
-                )}
-                {extremeBonusCount > 0 && (
-                  <div className="bht-count-bar bht-count-extreme">
-                    <span>🔥</span><span>EXTREME</span><span style={{ marginLeft: 'auto', fontWeight: 900 }}>{extremeBonusCount}</span>
-                  </div>
-                )}
-              </div>
-            )}
-            <div className="bht-count-bar bht-count-bonuses">
-              <span>🎰</span><span>BONUSES</span><span style={{ marginLeft: 'auto', fontWeight: 900 }}>{items.length}</span>
-            </div>
-          </div>
-
-          {/* 3D CARD STACK — ALL cards always rendered, stable keys, only className changes */}
-          <div className="bht-stack-wrap" style={{ flexShrink: 0 }}>
-            {items.map((item, bIdx) => {
-              const total = items.length;
-              const ci = activeCardIndex % total;
-              const rawDist = ((bIdx - ci) % total + total) % total;
-              const dist = rawDist <= Math.floor(total / 2) ? rawDist : rawDist - total;
-              const posMap: Record<string, string> = {
-                '-2': 'bht-stack-card--far-left',
-                '-1': 'bht-stack-card--left',
-                '0':  'bht-stack-card--center',
-                '1':  'bht-stack-card--right',
-                '2':  'bht-stack-card--far-right',
-              };
-              const posCls = posMap[String(dist)] || 'bht-stack-card--hidden';
-              const isOpened = item.status === 'opened';
-              return (
-                <div key={`stk-${bIdx}`} className={`bht-stack-card ${posCls}`}>
-                  <div className="bht-stack-card-inner">
-                    <div className="bht-stack-card-img-wrap">
-                      <img
-                        src={item.slot_image_url || '/image.png'}
-                        alt={item.slot_name}
-                        className="bht-stack-img"
-                        style={{ filter: isOpened ? 'brightness(0.45)' : 'none' }}
-                        onError={(e) => { e.currentTarget.src = '/image.png'; }}
-                      />
-                      <div className="bht-stack-name">{item.slot_name}</div>
-                      {item.is_super_bonus === true && <div className="bht-stack-border bht-stack-border--super" />}
-                      {item.is_extreme_bonus === true && <div className="bht-stack-border bht-stack-border--extreme" />}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* PROGRESS BAR */}
-          <div style={{ padding: '6px 16px 8px', flexShrink: 0 }}>
-            <div className="bht-progress-track">
-              <div className="bht-progress-fill" style={{ width: `${progressPct}%` }} />
-            </div>
-          </div>
-
-          {/* BONUS LIST HEADER */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0 12px 6px', flexShrink: 0 }}>
-            <span style={{ fontSize: '0.9em' }}>📋</span>
-            <span className="bht-list-header">BONUS LIST</span>
-          </div>
-
-          {/* BONUS LIST */}
-          <div className="bht-list-container">
-            <div
-              className="bht-list-track"
-              style={
-                isOpeningMode && currentBonusIndex >= 0
-                  ? { transform: `translateY(-${currentBonusIndex * 58}px)`, transition: 'transform 0.5s ease-out' }
-                  : items.length > 4
-                    ? { animation: `bhtAutoScroll ${Math.max(18, items.length * 3.5)}s linear infinite` }
-                    : undefined
-              }
-            >
-              {(isOpeningMode ? items : scrollingItems).map((item, index) => {
-                const actualIndex = items.length > 0 ? (index % items.length) : 0;
-                const payment = item.payment_amount || item.bet_amount;
-                const isOpened = item.status === 'opened';
-                const isWin = isOpened && (item.result_amount || 0) > payment;
-                const isFirst = index < items.length;
-                const isNew = newItemIds.has(item.id) && isFirst;
-                const isRemoved = removedItemIds.has(item.id);
-                const isCurrent = isOpeningMode && actualIndex === currentBonusIndex;
-
-                return (
-                  <div
-                    key={`${item.id}-${index}`}
-                    className="bht-cpt-card"
-                    style={{
-                      borderLeft: item.is_super_bonus === true ? '3px solid var(--bht-super)'
-                        : item.is_extreme_bonus === true ? '3px solid var(--bht-extreme)'
-                        : isCurrent ? '3px solid var(--bht-current)'
-                        : '1px solid var(--bht-card-border)',
-                      boxShadow: item.is_super_bonus === true ? '0 0 10px rgba(234,179,8,0.2)'
-                        : item.is_extreme_bonus === true ? '0 0 10px rgba(239,68,68,0.2)'
-                        : isCurrent ? '0 0 10px rgba(74,222,128,0.2)'
-                        : 'none',
-                      animation: isNew ? 'bhtSlideIn 0.5s ease-out'
-                        : isRemoved ? 'bhtSlideOut 0.4s ease-in forwards'
-                        : 'none',
-                    }}
-                  >
-                    <img
-                      src={item.slot_image_url || '/image.png'}
-                      alt={item.slot_name}
-                      className="bht-cpt-img"
-                      onError={(e) => { e.currentTarget.src = '/image.png'; }}
-                    />
-                    <div className="bht-cpt-info">
-                      <div className="bht-cpt-row1">
-                        <span className="bht-cpt-name">{item.slot_name}</span>
-                        <span className="bht-cpt-index">#{actualIndex + 1}</span>
-                      </div>
-                      <div className="bht-cpt-row2">
-                        <span className="bht-cpt-bet">€{payment.toFixed(2)}</span>
-                        {isOpened && (
-                          <>
-                            <span className="bht-cpt-payout" style={{ color: isWin ? 'var(--bht-current)' : 'var(--bht-extreme)' }}>
-                              €{(item.result_amount || 0).toFixed(0)}
-                            </span>
-                            <span className="bht-cpt-multi">{(item.multiplier || 0).toFixed(1)}x</span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
+    <div style={{ width: '288px', height: '720px', position: 'relative', marginTop: '0px', marginLeft: '62px' }}>
+      <MemoizedWidget config={config} />
     </div>
   );
 }
