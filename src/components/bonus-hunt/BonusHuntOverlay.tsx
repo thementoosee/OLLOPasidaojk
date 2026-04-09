@@ -385,8 +385,6 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
                       )}
                     </div>
                   </div>
-                  {isExtreme && <span className="bht-cpt-badge bht-cpt-badge--extreme">EXTREME</span>}
-                  {!isExtreme && isSuper && <span className="bht-cpt-badge bht-cpt-badge--super">SUPER</span>}
                 </div>
               );
             };

@@ -368,17 +368,23 @@
 }
 .bht-cpt-card--opened.bht-cpt-card--active { opacity: 1; }
 .bht-cpt-card--super {
-  border-color: rgba(234,179,8,0.5);
-  box-shadow: 0 0 8px 1px rgba(234,179,8,0.18);
+  border: 1.5px solid rgba(234,179,8,0.7);
+  box-shadow: 0 0 8px 1px rgba(234,179,8,0.25), inset 0 0 6px rgba(234,179,8,0.08);
+  animation: bht-cpt-super-pulse 3s ease-in-out infinite;
+}
+@keyframes bht-cpt-super-pulse {
+  0%, 100% { box-shadow: 0 0 8px 1px rgba(234,179,8,0.25), inset 0 0 6px rgba(234,179,8,0.08); }
+  50%      { box-shadow: 0 0 14px 3px rgba(234,179,8,0.4), inset 0 0 8px rgba(234,179,8,0.12); }
 }
 .bht-cpt-card--extreme {
-  border-color: rgba(220,38,38,0.6);
-  box-shadow: 0 0 12px 2px rgba(220,38,38,0.3);
-  animation: bht-cpt-extreme-pulse 1.8s ease-in-out infinite;
+  border: 1.5px solid rgba(220,38,38,0.8);
+  box-shadow: 0 0 10px 2px rgba(220,38,38,0.35), inset 0 0 6px rgba(220,38,38,0.1);
+  animation: bht-cpt-extreme-vibrate 0.4s ease-in-out infinite alternate;
 }
-@keyframes bht-cpt-extreme-pulse {
-  0%, 100% { box-shadow: 0 0 12px 2px rgba(220,38,38,0.3); }
-  50%      { box-shadow: 0 0 20px 4px rgba(220,38,38,0.5); }
+@keyframes bht-cpt-extreme-vibrate {
+  0%   { transform: translateX(-0.5px); box-shadow: 0 0 10px 2px rgba(220,38,38,0.35), inset 0 0 6px rgba(220,38,38,0.1); }
+  50%  { transform: translateX(0.5px);  box-shadow: 0 0 16px 4px rgba(220,38,38,0.5), inset 0 0 8px rgba(220,38,38,0.15); }
+  100% { transform: translateX(-0.3px); box-shadow: 0 0 10px 2px rgba(220,38,38,0.35), inset 0 0 6px rgba(220,38,38,0.1); }
 }
 
 /* Full-bleed background image */
@@ -400,32 +406,7 @@
   background: linear-gradient(135deg, #1a1f3a, #0e1225);
 }
 
-/* Type badges */
-.bht-cpt-badge {
-  position: absolute;
-  top: 50%;
-  right: 8px;
-  transform: translateY(-50%);
-  padding: 3px 10px;
-  border-radius: 4px;
-  font-size: 0.55em;
-  font-weight: 900;
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
-  z-index: 4;
-}
-.bht-cpt-badge--extreme {
-  background: rgba(220,38,38,0.9);
-  color: #fff;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-  box-shadow: 0 0 6px rgba(220,38,38,0.4);
-}
-.bht-cpt-badge--super {
-  background: rgba(234,179,8,0.9);
-  color: #fff;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-  box-shadow: 0 0 6px rgba(234,179,8,0.3);
-}
+/* Type badges — removed, using border glow instead */
 
 /* Card info overlay on top of image */
 .bht-cpt-card-info {
