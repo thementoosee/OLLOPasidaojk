@@ -447,14 +447,39 @@
   padding-right: 6px;
 }
 .bht11:not(.bht11--opening) .bht-cpt-card-row2 {
-  display: none;
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  display: flex;
+  padding: 0;
+  gap: 0;
+  font-size: 0.75em;
+  z-index: 3;
 }
-.bht11:not(.bht11--opening) .bht-cpt-card-name,
-.bht11:not(.bht11--opening) .bht-cpt-card-idx,
-.bht11:not(.bht11--opening) .bht-cpt-card-bet,
 .bht11:not(.bht11--opening) .bht-cpt-card-payout,
 .bht11:not(.bht11--opening) .bht-cpt-card-multi {
+  display: none;
+}
+.bht11:not(.bht11--opening) .bht-cpt-card-name {
+  font-size: 0.92em;
+  font-weight: 900;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  flex: 1;
+  min-width: 0;
   text-shadow: none;
+  line-height: 1;
+  height: auto;
+}
+.bht11:not(.bht11--opening) .bht-cpt-card-row1 {
+  padding-top: 0;
+  padding-bottom: 0;
+  height: auto;
+  gap: 4px;
+  line-height: 1;
 }
 .bht-cpt-card-row1 {
   display: flex;
@@ -487,9 +512,6 @@
   font-size: 0.78em;
 }
 .bht11:not(.bht11--opening) .bht-cpt-card-bet {
-  position: absolute;
-  top: 4px;
-  left: 4px;
   font-weight: 800;
   color: #93c5fd;
   white-space: nowrap;
@@ -497,12 +519,13 @@
   background: transparent;
   padding: 0;
   border-radius: 0;
-  font-size: 0.75em;
-  z-index: 3;
-  /* Hide "BET " text using font-size trick */
-  text-indent: 2.5em;
+  font-size: 1em;
+  /* Hide "BET " label by using negative text-indent */
+  text-indent: -2.2em;
   overflow: hidden;
-  width: 3.5em;
+  display: inline-block;
+  width: auto;
+  max-width: 4em;
 }
 .bht-cpt-card-bet {
   font-weight: 800;
