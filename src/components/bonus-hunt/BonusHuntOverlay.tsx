@@ -218,22 +218,6 @@ export function BonusHuntOverlay({ huntId, embedded = false }: BonusHuntOverlayP
     if (idx >= 0) setActiveCardIndex(idx);
   }, [isOpeningMode, items]);
 
-  // Card position class — circular distance maps to CSS class, transition handles animation
-  const getPositionClass = (bIdx: number): string => {
-    if (items.length === 0) return 'bht-stack-card--hidden';
-    const total = items.length;
-    const rawDist = ((bIdx - activeCardIndex) % total + total) % total;
-    const dist = rawDist <= Math.floor(total / 2) ? rawDist : rawDist - total;
-    const posMap: Record<string, string> = {
-      '-2': 'bht-stack-card--far-left',
-      '-1': 'bht-stack-card--left',
-      '0': 'bht-stack-card--center',
-      '1': 'bht-stack-card--right',
-      '2': 'bht-stack-card--far-right',
-    };
-    return posMap[String(dist)] || 'bht-stack-card--hidden';
-  };
-
   const currentBonusIndex = isOpeningMode ? items.findIndex(item => item.status === 'pending') : -1;
 
   return (
@@ -570,13 +554,24 @@ export function BonusHuntOverlay({ huntId, embedded = false }: BonusHuntOverlayP
             </div>
           </div>
 
-          {/* 3D CARD STACK */}
+          {/* 3D CARD STACK — ALL cards always rendered, stable keys, only className changes */}
           <div className="bht-stack-wrap" style={{ flexShrink: 0 }}>
-            {items.map((item, i) => {
-              const posCls = getPositionClass(i);
+            {items.map((item, bIdx) => {
+              const total = items.length;
+              const ci = activeCardIndex % total;
+              const rawDist = ((bIdx - ci) % total + total) % total;
+              const dist = rawDist <= Math.floor(total / 2) ? rawDist : rawDist - total;
+              const posMap: Record<string, string> = {
+                '-2': 'bht-stack-card--far-left',
+                '-1': 'bht-stack-card--left',
+                '0':  'bht-stack-card--center',
+                '1':  'bht-stack-card--right',
+                '2':  'bht-stack-card--far-right',
+              };
+              const posCls = posMap[String(dist)] || 'bht-stack-card--hidden';
               const isOpened = item.status === 'opened';
               return (
-                <div key={item.id} className={`bht-stack-card ${posCls}`}>
+                <div key={`stk-${bIdx}`} className={`bht-stack-card ${posCls}`}>
                   <div className="bht-stack-card-inner">
                     <div className="bht-stack-card-img-wrap">
                       <img
