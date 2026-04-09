@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useRef, useState, useCallback } from 'react';
+import React, { useMemo, useEffect, useLayoutEffect, useRef, useState, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 import './BonusHuntOverlay.css';
 
@@ -93,91 +93,85 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
      3D Carousel — 100% imperative DOM, React never touches positions
      ══════════════════════════════════════════════════════ */
   const stageRef = useRef<HTMLDivElement>(null);
-  const centerRef = useRef(0);          // which bIdx is centered
-  const mountedRef = useRef(false);     // skip transition on first paint
+  const centerRef = useRef(0);
 
   // Position presets: [translateX, translateZ, rotateY, scale, opacity, blur]
-  const SLOTS: Record<number, [number, number, number, number, number, number]> = {
-    [-2]: [-170, -120, 35, 0.65, 0.3, 1],
-    [-1]: [-95,  -50,  20, 0.85, 0.7, 0],
-    [0]:  [0,     20,   0, 1,    1,   0],
-    [1]:  [95,   -50, -20, 0.85, 0.7, 0],
-    [2]:  [170, -120, -35, 0.65, 0.3, 1],
-  };
+  const SLOTS: [number, number, number, number, number, number][] = [
+    [-170, -120, 35, 0.65, 0.3, 1],   // -2
+    [-95,  -50,  20, 0.85, 0.7, 0],   // -1
+    [0,     20,   0, 1,    1,   0],   //  0 (center)
+    [95,   -50, -20, 0.85, 0.7, 0],   //  1
+    [170, -120, -35, 0.65, 0.3, 1],   //  2
+  ];
 
-  const applySlot = useCallback((card: HTMLElement, dist: number) => {
-    const slot = SLOTS[dist];
-    if (slot) {
-      const [tx, tz, ry, sc, op, bl] = slot;
-      card.style.transform = `translateX(${tx}px) translateZ(${tz}px) rotateY(${ry}deg) scale(${sc})`;
-      card.style.opacity = String(op);
-      card.style.filter = bl > 0 ? `brightness(0.45) blur(${bl}px)` : 'brightness(1)';
-      card.style.zIndex = dist === 0 ? '3' : Math.abs(dist) === 1 ? '1' : '0';
-      card.style.pointerEvents = '';
-    } else {
-      // Hidden — exit in the direction it was heading
-      const exitX = dist < 0 ? -260 : 260;
-      const exitRY = dist < 0 ? 50 : -50;
-      card.style.transform = `translateX(${exitX}px) translateZ(-200px) rotateY(${exitRY}deg) scale(0.4)`;
-      card.style.opacity = '0';
-      card.style.filter = 'brightness(0.3) blur(3px)';
-      card.style.zIndex = '-1';
-      card.style.pointerEvents = 'none';
-    }
-  }, []);
-
-  const paintCarousel = useCallback((ci: number) => {
+  const positionCards = useCallback((ci: number) => {
     const stage = stageRef.current;
     if (!stage) return;
     const cards = stage.children;
     const total = cards.length;
     if (total === 0) return;
 
-    // Enable transitions after first paint
-    if (!mountedRef.current) {
-      mountedRef.current = true;
-    } else {
-      for (let i = 0; i < total; i++) {
-        const el = cards[i] as HTMLElement;
-        if (!el.style.transition) {
-          el.style.transition = 'transform 0.8s cubic-bezier(0.25,0.46,0.45,0.94), opacity 0.8s cubic-bezier(0.25,0.46,0.45,0.94), filter 0.8s cubic-bezier(0.25,0.46,0.45,0.94)';
-        }
-      }
-    }
-
     for (let i = 0; i < total; i++) {
+      const el = cards[i] as HTMLElement;
       const rawDist = ((i - ci) % total + total) % total;
       const dist = rawDist <= Math.floor(total / 2) ? rawDist : rawDist - total;
-      applySlot(cards[i] as HTMLElement, dist);
-    }
-  }, [applySlot]);
+      const slotIdx = dist + 2; // map -2..2 to 0..4
+      const slot = SLOTS[slotIdx];
 
-  // Auto-rotate timer
+      if (slot) {
+        const [tx, tz, ry, sc, op, bl] = slot;
+        el.style.transform = `translateX(${tx}px) translateZ(${tz}px) rotateY(${ry}deg) scale(${sc})`;
+        el.style.opacity = String(op);
+        el.style.filter = bl > 0 ? `brightness(0.45) blur(${bl}px)` : '';
+        el.style.zIndex = dist === 0 ? '3' : Math.abs(dist) === 1 ? '1' : '0';
+        el.style.pointerEvents = '';
+      } else {
+        const exitX = dist < 0 ? -260 : 260;
+        const exitRY = dist < 0 ? 50 : -50;
+        el.style.transform = `translateX(${exitX}px) translateZ(-200px) rotateY(${exitRY}deg) scale(0.4)`;
+        el.style.opacity = '0';
+        el.style.filter = 'brightness(0.3) blur(3px)';
+        el.style.zIndex = '-1';
+        el.style.pointerEvents = 'none';
+      }
+    }
+  }, []);
+
+  // Initial paint BEFORE browser paints — no transition, no flash
+  useLayoutEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    const cards = stage.children;
+    for (let i = 0; i < cards.length; i++) {
+      (cards[i] as HTMLElement).classList.add('no-transition');
+    }
+    const ci = isOpening && currentIndex >= 0 ? currentIndex : 0;
+    centerRef.current = ci;
+    positionCards(ci);
+    // Force layout so positions are committed, then re-enable transitions
+    void stage.offsetHeight;
+    for (let i = 0; i < cards.length; i++) {
+      (cards[i] as HTMLElement).classList.remove('no-transition');
+    }
+  }, [bonuses.length]);
+
+  // Auto-rotate timer — only writes positions, CSS handles the animation
   useEffect(() => {
     if (bonuses.length < 2 || isOpening) return;
     const id = setInterval(() => {
       centerRef.current = (centerRef.current + 1) % bonuses.length;
-      paintCarousel(centerRef.current);
+      positionCards(centerRef.current);
     }, 2500);
     return () => clearInterval(id);
-  }, [bonuses.length, isOpening, paintCarousel]);
+  }, [bonuses.length, isOpening, positionCards]);
 
   // Snap to currentIndex during opening
   useEffect(() => {
     if (isOpening && currentIndex >= 0) {
       centerRef.current = currentIndex;
-      paintCarousel(currentIndex);
+      positionCards(currentIndex);
     }
-  }, [isOpening, currentIndex, paintCarousel]);
-
-  // Initial paint (no transition)
-  useEffect(() => {
-    mountedRef.current = false;
-    requestAnimationFrame(() => {
-      const ci = isOpening && currentIndex >= 0 ? currentIndex : centerRef.current;
-      paintCarousel(ci);
-    });
-  }, [bonuses.length]); // only re-run when card count changes
+  }, [isOpening, currentIndex, positionCards]);
 
   return (
     <div className="bht11" style={{ fontFamily: "'Inter', sans-serif", fontSize: '15px', width: '100%', height: '100%', overflow: 'hidden' }}>

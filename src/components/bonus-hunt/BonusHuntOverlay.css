@@ -182,7 +182,12 @@
   margin-top: -95px;
   transform-style: preserve-3d;
   will-change: transform, opacity;
-  /* transition applied via JS after first paint */
+  transition: transform 0.8s cubic-bezier(0.25,0.46,0.45,0.94),
+              opacity  0.8s cubic-bezier(0.25,0.46,0.45,0.94),
+              filter   0.8s cubic-bezier(0.25,0.46,0.45,0.94);
+}
+.bht-carousel-card.no-transition {
+  transition: none !important;
 }
 
 /* Card inner structure */
