@@ -322,6 +322,9 @@
   max-height: none;
   min-height: 0;
   overflow: hidden;
+  position: relative;
+  mask-image: linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%);
 }
 .bht11-list-title {
   display: flex;
@@ -434,7 +437,9 @@
   justify-content: center;
   gap: 4px;
   padding: 10px 14px;
-  background: linear-gradient(90deg, rgba(6,10,32,0.88) 0%, rgba(6,10,32,0.6) 45%, rgba(6,10,32,0.05) 75%);
+  background: linear-gradient(90deg, rgba(6,10,32,0.95) 0%, rgba(6,10,32,0.82) 40%, rgba(6,10,32,0.3) 65%, transparent 100%);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
 }
 .bht-cpt-card-row1 {
   display: flex;
@@ -499,7 +504,7 @@
 
 /* Extreme card tint */
 .bht-cpt-card--extreme .bht-cpt-card-info {
-  background: linear-gradient(90deg, rgba(60,10,10,0.88) 0%, rgba(60,10,10,0.55) 45%, rgba(60,10,10,0.05) 75%);
+  background: linear-gradient(90deg, rgba(50,8,8,0.95) 0%, rgba(50,8,8,0.78) 40%, rgba(50,8,8,0.25) 65%, transparent 100%);
 }
 .bht-cpt-card--extreme .bht-cpt-card-name {
   color: #fca5a5;
@@ -507,7 +512,7 @@
 
 /* Super card tint */
 .bht-cpt-card--super .bht-cpt-card-info {
-  background: linear-gradient(90deg, rgba(60,40,5,0.88) 0%, rgba(60,40,5,0.55) 45%, rgba(60,40,5,0.05) 75%);
+  background: linear-gradient(90deg, rgba(50,35,5,0.95) 0%, rgba(50,35,5,0.78) 40%, rgba(50,35,5,0.25) 65%, transparent 100%);
 }
 .bht-cpt-card--super .bht-cpt-card-name {
   color: #fde68a;
