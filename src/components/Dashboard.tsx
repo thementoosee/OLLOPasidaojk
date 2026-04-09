@@ -367,9 +367,11 @@ export function Dashboard() {
       }
 
       console.log('[Dashboard] Clearing all show_on_main_overlay flags...');
-      await supabase.from('chill_sessions').update({ show_on_main_overlay: false }).neq('id', '00000000-0000-0000-0000-000000000000');
-      await supabase.from('bonus_hunts').update({ show_on_main_overlay: false }).neq('id', '00000000-0000-0000-0000-000000000000');
-      await supabase.from('bonus_openings').update({ show_on_main_overlay: false }).neq('id', '00000000-0000-0000-0000-000000000000');
+      await Promise.all([
+        supabase.from('chill_sessions').update({ show_on_main_overlay: false }).neq('id', '00000000-0000-0000-0000-000000000000'),
+        supabase.from('bonus_hunts').update({ show_on_main_overlay: false }).neq('id', '00000000-0000-0000-0000-000000000000'),
+        supabase.from('bonus_openings').update({ show_on_main_overlay: false }).neq('id', '00000000-0000-0000-0000-000000000000'),
+      ]);
 
       console.log('[Dashboard] Setting show_on_main_overlay for type:', type);
       if (type === 'chill') {

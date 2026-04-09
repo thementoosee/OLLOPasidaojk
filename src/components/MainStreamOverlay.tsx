@@ -171,6 +171,7 @@ export function MainStreamOverlay() {
       if (debounceTimer) clearTimeout(debounceTimer);
 
       debounceTimer = setTimeout(async () => {
+        console.log('[Main] Debounce fired, checking active overlays...');
         const { data: activeOpening } = await supabase
           .from('bonus_openings')
           .select('id, show_on_main_overlay, status')
@@ -224,7 +225,7 @@ export function MainStreamOverlay() {
           console.log('[Main] ⚪ No overlay');
           transitionTo(null, null);
         }
-      }, 100);
+      }, 350);
     };
 
     const chillChannel = supabase
@@ -285,6 +286,11 @@ export function MainStreamOverlay() {
     if (enterStartTimerRef.current) clearTimeout(enterStartTimerRef.current);
     if (cleanupTimerRef.current) clearTimeout(cleanupTimerRef.current);
 
+    // Clear any stale transition states from interrupted transitions
+    // React 18 batches these with the setState calls below
+    setLeavingOverlay(null);
+    setEnteringOverlay(null);
+
     const currentOverlay = cur.type ? cur : null;
 
     const commitState = (s: OverlayState) => {
@@ -304,7 +310,6 @@ export function MainStreamOverlay() {
 
     overlayStateRef.current = nextOverlay; // mark immediately
     setLeavingOverlay(currentOverlay);
-    setEnteringOverlay(null);
 
     exitTimerRef.current = setTimeout(() => {
       setLeavingOverlay(null);
