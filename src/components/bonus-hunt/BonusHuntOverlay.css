@@ -350,7 +350,11 @@
   100% { transform: translateY(-50%); }
 }
 .bht-compact-track--scroll {
-  animation: bht-compact-scroll calc(var(--bht-compact-count, 5) * 2.5s) linear infinite;
+  animation-name: bht-compact-scroll;
+  animation-duration: var(--bht-scroll-duration, 15s);
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-play-state: running;
 }
 
 /* ── Compact bonus cards (full-bleed image) ── */

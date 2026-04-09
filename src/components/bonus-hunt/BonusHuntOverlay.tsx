@@ -370,7 +370,7 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
             }
             return (
               <div key="compact-scroll" className="bht-compact-track bht-compact-track--scroll"
-                style={{ '--bht-compact-count': bonuses.length } as React.CSSProperties}>
+                style={{ '--bht-scroll-duration': `${bonuses.length * 2.5}s` } as React.CSSProperties}>
                 {[...bonuses, ...bonuses].map((b, i) => {
                   const idx = i % bonuses.length;
                   return renderCompactCard(b, idx, `${b.id || idx}-${i >= bonuses.length ? 'c' : 'o'}`);
