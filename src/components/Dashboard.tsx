@@ -155,6 +155,10 @@ export function Dashboard() {
   const ensureDefaultOverlaysExist = async () => {
     try {
       const requiredTypes: { type: OverlayType; name: string }[] = [
+        { type: 'main_stream', name: 'Main Stream Principal' },
+        { type: 'bar', name: 'Barra Principal' },
+        { type: 'chat', name: 'Chat Principal' },
+        { type: 'alerts', name: 'Alertas Principal' },
         { type: 'bonus_hunt', name: 'Bonus Hunt Principal' },
         { type: 'bonus_opening', name: 'Bonus Opening Principal' },
         { type: 'chill', name: 'Chill Principal' },

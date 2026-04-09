@@ -41,19 +41,29 @@ export function MainStreamOverlay() {
     };
   }, []);
 
-  const initializeOverlays = async () => {
-    const { data: barData } = await supabase
+  const getOrCreateOverlay = async (type: string, name: string) => {
+    const { data: existing } = await supabase
       .from('overlays')
       .select('*')
-      .eq('type', 'bar')
+      .eq('type', type)
       .maybeSingle();
+
+    if (existing) return existing;
+
+    const { data: created } = await supabase
+      .from('overlays')
+      .insert({ type, name, config: {}, is_active: true })
+      .select()
+      .single();
+
+    return created;
+  };
+
+  const initializeOverlays = async () => {
+    const barData = await getOrCreateOverlay('bar', 'Barra Principal');
     if (barData) setBarOverlayId(barData.id);
 
-    const { data: chatData } = await supabase
-      .from('overlays')
-      .select('*')
-      .eq('type', 'chat')
-      .maybeSingle();
+    const chatData = await getOrCreateOverlay('chat', 'Chat Principal');
     if (chatData) setChatOverlayId(chatData.id);
 
     const { data: activeOpening } = await supabase
