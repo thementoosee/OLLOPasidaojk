@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect, useRef } from 'react';
+import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 import './BonusHuntOverlay.css';
 
@@ -121,13 +121,52 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
     return { totalBetAll, totalWin, superCount, extremeCount, breakEven, liveBE, openedCount: openedBonuses.length };
   }, [bonuses, startMoney, stopLoss]);
 
-  /* ── Auto-rotating carousel ── */
-  const [carouselIdx, setCarouselIdx] = useState(0);
-  useEffect(() => {
-    if (bonuses.length < 2) return;
-    const id = setInterval(() => setCarouselIdx(i => (i + 1) % bonuses.length), 2500);
-    return () => clearInterval(id);
+  /* ── Direct-DOM carousel — React never touches these styles ── */
+  const carouselRef = useRef(0);
+  const stackRef = useRef<HTMLDivElement>(null);
+
+  const applyPositions = useCallback((ci: number) => {
+    const el = stackRef.current;
+    if (!el) return;
+    const total = bonuses.length;
+    if (total === 0) return;
+    const cards = el.querySelectorAll<HTMLElement>('[data-cidx]');
+    cards.forEach((card) => {
+      const bIdx = parseInt(card.dataset.cidx || '0', 10);
+      const rawDist = ((bIdx - ci) % total + total) % total;
+      const dist = rawDist <= Math.floor(total / 2) ? rawDist : rawDist - total;
+      const pos = POS[String(dist)] || POS_HIDDEN;
+      card.style.transform = pos.transform as string;
+      card.style.opacity = String(pos.opacity);
+      card.style.zIndex = String(pos.zIndex);
+      card.style.filter = pos.filter as string;
+    });
   }, [bonuses.length]);
+
+  /* Auto-rotate — only writes to DOM, never calls setState */
+  useEffect(() => {
+    if (bonuses.length < 2 || isOpening) return;
+    const id = setInterval(() => {
+      carouselRef.current = (carouselRef.current + 1) % bonuses.length;
+      applyPositions(carouselRef.current);
+    }, 2500);
+    return () => clearInterval(id);
+  }, [bonuses.length, isOpening, applyPositions]);
+
+  /* When opening, snap to currentIndex */
+  useEffect(() => {
+    if (isOpening && currentIndex >= 0) {
+      applyPositions(currentIndex);
+    }
+  }, [isOpening, currentIndex, applyPositions]);
+
+  /* Initial paint after mount */
+  useEffect(() => {
+    requestAnimationFrame(() => {
+      const ci = isOpening && currentIndex >= 0 ? currentIndex : carouselRef.current;
+      applyPositions(ci);
+    });
+  }, [bonuses.length, applyPositions]);
 
   const currentBonus = bonuses.find(b => !b.opened);
   const currentIndex = currentBonus ? bonuses.indexOf(currentBonus) : -1;
@@ -193,33 +232,22 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
       {/* ═══ 4. 3D Rotating Card Stack ═══ */}
       {bonuses.length > 0 && (
         <div className="bht11-stack-section">
-          <div style={STACK_STYLE}>
-            {(() => {
-              const total = bonuses.length;
-              if (total === 0) return null;
-              const ci = isOpening && currentIndex >= 0 ? currentIndex : carouselIdx % total;
-              return bonuses.map((bonus, bIdx) => {
-                const rawDist = ((bIdx - ci) % total + total) % total;
-                const dist = rawDist <= Math.floor(total / 2) ? rawDist : rawDist - total;
-                const pos = POS[String(dist)] || POS_HIDDEN;
-                const style: React.CSSProperties = { ...CARD_BASE, ...pos };
-                if (bonus.opened && dist !== 0) style.opacity = 0.5;
-                return (
-                  <div key={`stk-${bIdx}`}
-                    style={style}
-                    className={`bht-stack-card${bonus.opened ? ' bht-stack-card--opened' : ''}${bonus.isSuperBonus ? ' bht-stack-card--super' : ''}${(bonus.isExtremeBonus || bonus.isExtreme) ? ' bht-stack-card--extreme' : ''}`}>
-                    <div className="bht-stack-card-inner">
-                      <div className="bht-stack-card-img-wrap">
-                        {bonus.slot?.image ? (
-                          <img src={bonus.slot.image} alt={bonus.slotName} className="bht-stack-card-img"
-                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                        ) : <div className="bht-stack-card-img-ph" />}
-                      </div>
-                    </div>
+          <div ref={stackRef} style={STACK_STYLE}>
+            {bonuses.map((bonus, bIdx) => (
+              <div key={`stk-${bIdx}`}
+                data-cidx={bIdx}
+                style={CARD_BASE}
+                className={`bht-stack-card${bonus.opened ? ' bht-stack-card--opened' : ''}${bonus.isSuperBonus ? ' bht-stack-card--super' : ''}${(bonus.isExtremeBonus || bonus.isExtreme) ? ' bht-stack-card--extreme' : ''}`}>
+                <div className="bht-stack-card-inner">
+                  <div className="bht-stack-card-img-wrap">
+                    {bonus.slot?.image ? (
+                      <img src={bonus.slot.image} alt={bonus.slotName} className="bht-stack-card-img"
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                    ) : <div className="bht-stack-card-img-ph" />}
                   </div>
-                );
-              });
-            })()}
+                </div>
+              </div>
+            ))}
           </div>
           {(() => {
             const total = bonuses.length;
