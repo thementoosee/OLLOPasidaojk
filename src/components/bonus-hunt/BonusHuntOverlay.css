@@ -512,8 +512,9 @@
 
 /* ── Opening mode: shorter bonus list ── */
 .bht11--opening .bht11-list-section {
-  flex: 0 1 auto;
-  max-height: 180px;
+  flex: 0 0 auto;
+  max-height: 160px;
+  min-height: 0;
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -522,22 +523,23 @@
 .bht-best-slot {
   flex-shrink: 0;
   display: flex;
-  align-items: stretch;
+  align-items: center;
   gap: 10px;
-  margin: 6px 4px 8px;
-  padding: 8px;
-  background: linear-gradient(135deg, rgba(15,20,40,0.9) 0%, rgba(10,14,30,0.85) 100%);
-  border: 1px solid rgba(96,165,250,0.2);
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  margin: 6px 4px 4px;
+  padding: 10px;
+  background: linear-gradient(135deg, #1a1500 0%, #261d00 50%, #1a1500 100%);
+  border: 1.5px solid rgba(234,179,8,0.35);
+  border-radius: 14px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5), 0 0 12px rgba(234,179,8,0.08);
 }
 .bht-best-slot-img-wrap {
-  width: 72px;
-  height: 72px;
+  width: 76px;
+  height: 76px;
   flex-shrink: 0;
-  border-radius: 10px;
+  border-radius: 12px;
   overflow: hidden;
   background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(234,179,8,0.2);
 }
 .bht-best-slot-img {
   width: 100%;
@@ -555,27 +557,31 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 3px;
+  gap: 6px;
   min-width: 0;
 }
 .bht-best-slot-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
 }
-.bht-best-slot-label {
-  font-size: 0.65em;
-  font-weight: 800;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.45);
+.bht-best-slot-icon {
+  font-size: 0.9em;
+  width: 18px;
+  text-align: center;
+  flex-shrink: 0;
 }
 .bht-best-slot-value {
-  font-size: 0.85em;
+  font-size: 0.9em;
   font-weight: 800;
-  color: rgba(255,255,255,0.85);
-  text-align: right;
+  color: rgba(255,255,255,0.9);
+}
+.bht-best-slot-label {
+  font-size: 0.6em;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.35);
 }
 .bht-best-slot-value--payout {
   color: #4ade80;
@@ -589,4 +595,7 @@
 .bht-best-slot-value--huge {
   color: #ef4444;
   text-shadow: 0 0 6px rgba(239,68,68,0.5);
+}
+.bht-best-slot-value--bet {
+  color: #93c5fd;
 }

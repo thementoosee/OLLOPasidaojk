@@ -480,16 +480,19 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
             </div>
             <div className="bht-best-slot-info">
               <div className="bht-best-slot-row">
-                <span className="bht-best-slot-label">PAYOUT</span>
+                <span className="bht-best-slot-icon">🏆</span>
                 <span className="bht-best-slot-value bht-best-slot-value--payout">{currency}{bestPayout.toFixed(2)}</span>
+                <span className="bht-best-slot-label">BEST WIN</span>
               </div>
               <div className="bht-best-slot-row">
-                <span className="bht-best-slot-label">MULTI</span>
+                <span className="bht-best-slot-icon">⚡</span>
                 <span className={`bht-best-slot-value bht-best-slot-value--multi${bestMulti >= 100 ? ' bht-best-slot-value--huge' : bestMulti >= 50 ? ' bht-best-slot-value--big' : ''}`}>{bestMulti.toFixed(1)}x</span>
+                <span className="bht-best-slot-label">BEST MULTI</span>
               </div>
               <div className="bht-best-slot-row">
-                <span className="bht-best-slot-label">BET</span>
-                <span className="bht-best-slot-value">{currency}{bestBet.toFixed(2)}</span>
+                <span className="bht-best-slot-icon">💰</span>
+                <span className="bht-best-slot-value bht-best-slot-value--bet">{currency}{bestBet.toFixed(2)}</span>
+                <span className="bht-best-slot-label">BET SIZE</span>
               </div>
             </div>
           </div>
