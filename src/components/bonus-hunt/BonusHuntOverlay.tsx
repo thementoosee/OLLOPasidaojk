@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useRef, useState } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import './BonusHuntOverlay.css';
 
@@ -89,59 +89,28 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
     return { totalBetAll, totalWin, superCount, extremeCount, breakEven, liveBE, openedCount: openedBonuses.length };
   }, [bonuses, startMoney, stopLoss]);
 
-  /* ── Inline position data — inside the function, no TDZ possible ── */
-  const posData: Record<string, { t: string; z: number; o: number; f: string }> = {
-    '-2': { t: 'translateX(-170px) translateZ(-120px) rotateY(35deg) scale(0.65)', z: 0, o: 0.3, f: 'brightness(0.45) blur(1px)' },
-    '-1': { t: 'translateX(-95px) translateZ(-50px) rotateY(20deg) scale(0.85)', z: 1, o: 0.7, f: 'brightness(0.7)' },
-    '0':  { t: 'translateX(0) translateZ(20px) rotateY(0deg) scale(1)', z: 3, o: 1, f: 'brightness(1)' },
-    '1':  { t: 'translateX(95px) translateZ(-50px) rotateY(-20deg) scale(0.85)', z: 1, o: 0.7, f: 'brightness(0.7)' },
-    '2':  { t: 'translateX(170px) translateZ(-120px) rotateY(-35deg) scale(0.65)', z: 0, o: 0.3, f: 'brightness(0.45) blur(1px)' },
+  /* ── Carousel positions ── */
+  const posStyles: Record<string, React.CSSProperties> = {
+    '-2': { transform: 'translateX(-170px) translateZ(-120px) rotateY(35deg) scale(0.65)', zIndex: 0, opacity: 0.3, filter: 'brightness(0.45) blur(1px)' },
+    '-1': { transform: 'translateX(-95px) translateZ(-50px) rotateY(20deg) scale(0.85)', zIndex: 1, opacity: 0.7, filter: 'brightness(0.7)' },
+    '0':  { transform: 'translateX(0) translateZ(20px) rotateY(0deg) scale(1)', zIndex: 3, opacity: 1, filter: 'brightness(1)' },
+    '1':  { transform: 'translateX(95px) translateZ(-50px) rotateY(-20deg) scale(0.85)', zIndex: 1, opacity: 0.7, filter: 'brightness(0.7)' },
+    '2':  { transform: 'translateX(170px) translateZ(-120px) rotateY(-35deg) scale(0.65)', zIndex: 0, opacity: 0.3, filter: 'brightness(0.45) blur(1px)' },
   };
-  const hiddenPos = { t: 'translateX(0) translateZ(-200px) rotateY(0deg) scale(0.4)', z: -1, o: 0, f: 'brightness(0.3) blur(3px)' };
+  const hiddenStyle: React.CSSProperties = { transform: 'translateX(0) translateZ(-200px) rotateY(0deg) scale(0.4)', zIndex: -1, opacity: 0, filter: 'brightness(0.3) blur(3px)', pointerEvents: 'none' };
 
-  /* ── Direct-DOM carousel — React never touches these styles ── */
-  const stackRef = useRef<HTMLDivElement>(null);
-  const carouselIdxRef = useRef(0);
+  /* ── React state carousel — same approach as working main project ── */
+  const [carouselIdx, setCarouselIdx] = useState(0);
 
   useEffect(() => {
-    const el = stackRef.current;
-    if (!el) return;
-    const total = bonuses.length;
-    if (total === 0) return;
+    if (bonuses.length < 2 || isOpening) return;
+    const id = setInterval(() => setCarouselIdx(i => (i + 1) % bonuses.length), 2500);
+    return () => clearInterval(id);
+  }, [bonuses.length, isOpening]);
 
-    function paint(ci: number) {
-      if (!el) return;
-      const cards = el.querySelectorAll<HTMLElement>('[data-cidx]');
-      cards.forEach((card) => {
-        const bIdx = parseInt(card.dataset.cidx || '0', 10);
-        const rawDist = ((bIdx - ci) % total + total) % total;
-        const dist = rawDist <= Math.floor(total / 2) ? rawDist : rawDist - total;
-        const pos = posData[String(dist)] || hiddenPos;
-        card.style.transform = pos.t;
-        card.style.opacity = String(pos.o);
-        card.style.zIndex = String(pos.z);
-        card.style.filter = pos.f;
-      });
-    }
-
-    // Initial paint
-    const ci = isOpening && currentIndex >= 0 ? currentIndex : carouselIdxRef.current;
-    requestAnimationFrame(() => paint(ci));
-
-    // Auto-rotate only when NOT opening
-    if (!isOpening && total >= 2) {
-      const id = setInterval(() => {
-        carouselIdxRef.current = (carouselIdxRef.current + 1) % total;
-        paint(carouselIdxRef.current);
-      }, 2500);
-      return () => clearInterval(id);
-    }
-
-    // When opening, snap to currentIndex on every render
-    if (isOpening && currentIndex >= 0) {
-      paint(currentIndex);
-    }
-  }, [bonuses.length, isOpening, currentIndex]);
+  useEffect(() => {
+    if (isOpening && currentIndex >= 0) setCarouselIdx(currentIndex);
+  }, [isOpening, currentIndex]);
 
   return (
     <div className="bht11" style={{ fontFamily: "'Inter', sans-serif", fontSize: '15px', width: '100%', height: '100%', overflow: 'hidden' }}>
@@ -202,31 +171,36 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
       {/* ═══ 4. 3D Rotating Card Stack ═══ */}
       {bonuses.length > 0 && (
         <div className="bht11-stack-section">
-          <div ref={stackRef} style={{
+          <div style={{
             display: 'flex', justifyContent: 'center', alignItems: 'center',
-            position: 'relative', height: 210, perspective: 1000,
+            position: 'relative' as const, height: 210, perspective: 1000,
             perspectiveOrigin: '50% 50%', margin: '6px 0', overflow: 'visible',
           }}>
-            {bonuses.map((bonus, bIdx) => (
-              <div key={`stk-${bIdx}`}
-                data-cidx={bIdx}
-                style={{
-                  position: 'absolute', width: 120, height: 190,
-                  transition: 'transform 0.8s cubic-bezier(0.25,0.46,0.45,0.94), opacity 0.8s cubic-bezier(0.25,0.46,0.45,0.94), filter 0.8s cubic-bezier(0.25,0.46,0.45,0.94)',
-                  transformStyle: 'preserve-3d', willChange: 'transform, opacity, filter',
-                  opacity: 0,
-                }}
-                className={`bht-stack-card${bonus.opened ? ' bht-stack-card--opened' : ''}${bonus.isSuperBonus ? ' bht-stack-card--super' : ''}${(bonus.isExtremeBonus || bonus.isExtreme) ? ' bht-stack-card--extreme' : ''}`}>
-                <div className="bht-stack-card-inner">
-                  <div className="bht-stack-card-img-wrap">
-                    {bonus.slot?.image ? (
-                      <img src={bonus.slot.image} alt={bonus.slotName} className="bht-stack-card-img"
-                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                    ) : <div className="bht-stack-card-img-ph" />}
+            {bonuses.map((bonus, bIdx) => {
+              const total = bonuses.length;
+              const rawDist = ((bIdx - carouselIdx) % total + total) % total;
+              const dist = rawDist <= Math.floor(total / 2) ? rawDist : rawDist - total;
+              const pos = posStyles[String(dist)] || hiddenStyle;
+              return (
+                <div key={`stk-${bIdx}`}
+                  style={{
+                    position: 'absolute' as const, width: 120, height: 190,
+                    transition: 'transform 0.8s cubic-bezier(0.25,0.46,0.45,0.94), opacity 0.8s cubic-bezier(0.25,0.46,0.45,0.94), filter 0.8s cubic-bezier(0.25,0.46,0.45,0.94)',
+                    transformStyle: 'preserve-3d', willChange: 'transform, opacity, filter',
+                    ...pos,
+                  }}
+                  className={`bht-stack-card${bonus.opened ? ' bht-stack-card--opened' : ''}${bonus.isSuperBonus ? ' bht-stack-card--super' : ''}${(bonus.isExtremeBonus || bonus.isExtreme) ? ' bht-stack-card--extreme' : ''}`}>
+                  <div className="bht-stack-card-inner">
+                    <div className="bht-stack-card-img-wrap">
+                      {bonus.slot?.image ? (
+                        <img src={bonus.slot.image} alt={bonus.slotName} className="bht-stack-card-img"
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                      ) : <div className="bht-stack-card-img-ph" />}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
           {(() => {
             const total = bonuses.length;
