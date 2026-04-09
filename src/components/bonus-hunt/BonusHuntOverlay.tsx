@@ -412,7 +412,8 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
               const isSuper = bonus.isSuperBonus;
               return (
                 <div key={key}
-                  className={`bht-cpt-card${idx === currentIndex ? ' bht-cpt-card--active' : ''}${bonus.opened ? ' bht-cpt-card--opened' : ''}${isSuper ? ' bht-cpt-card--super' : ''}${isExtreme ? ' bht-cpt-card--extreme' : ''}`}>
+                  className={`bht-cpt-card${idx === currentIndex ? ' bht-cpt-card--active' : ''}${bonus.opened ? ' bht-cpt-card--opened' : ''}${isSuper ? ' bht-cpt-card--super' : ''}${isExtreme ? ' bht-cpt-card--extreme' : ''}`}
+                  style={{ position: 'relative' }}>
                   <div className="bht-cpt-card-img-wrap">
                     {bonus.slot?.image ? (
                       <img src={bonus.slot.image} alt={bonus.slotName}
@@ -420,20 +421,20 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
                         onError={(e) => { const t = e.target as HTMLImageElement; t.src = ''; t.style.display = 'none'; }} />
                     ) : <div className="bht-cpt-card-img-ph" />}
                   </div>
-                  <div className="bht-cpt-card-info">
+                  <div className="bht-cpt-card-info" style={{ position: 'absolute', left: 0, right: 0, bottom: 0 }}>
                     <div className="bht-cpt-card-row1">
                       <span className="bht-cpt-card-idx">#{idx + 1}</span>
                       <span className="bht-cpt-card-name">{bonus.slotName || bonus.slot?.name}</span>
                     </div>
-                    <div className="bht-cpt-card-row2">
-                      <span className="bht-cpt-card-bet">BET {currency}{bet.toFixed(2)}</span>
-                      {bonus.opened && (
-                        <>
-                          <span className="bht-cpt-card-payout">{currency}{payout.toFixed(2)}</span>
-                          <span className={`bht-cpt-card-multi${multi >= 100 ? ' bht-cpt-card-multi--huge' : multi >= 50 ? ' bht-cpt-card-multi--big' : ''}`}>{multi.toFixed(1)}x</span>
-                        </>
-                      )}
-                    </div>
+                  </div>
+                  <div className="bht-cpt-card-row2">
+                    <span className="bht-cpt-card-bet">BET {currency}{bet.toFixed(2)}</span>
+                    {bonus.opened && (
+                      <>
+                        <span className="bht-cpt-card-payout">{currency}{payout.toFixed(2)}</span>
+                        <span className={`bht-cpt-card-multi${multi >= 100 ? ' bht-cpt-card-multi--huge' : multi >= 50 ? ' bht-cpt-card-multi--big' : ''}`}>{multi.toFixed(1)}x</span>
+                      </>
+                    )}
                   </div>
                 </div>
               );
