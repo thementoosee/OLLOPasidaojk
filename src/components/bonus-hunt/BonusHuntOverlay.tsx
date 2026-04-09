@@ -75,6 +75,28 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
   const isOpening = !!c.bonusOpening && currentIndex >= 0;
   const huntTitle = c.bonusOpening ? 'BONUS OPENING' : 'BONUS HUNT';
 
+  /* ── Mode transition animation (hunt ↔ opening) ── */
+  const widgetContentRef = useRef<HTMLDivElement>(null);
+  const prevModeRef = useRef(!!c.bonusOpening);
+  useEffect(() => {
+    const isOpeningNow = !!c.bonusOpening;
+    if (prevModeRef.current === isOpeningNow) return;
+    prevModeRef.current = isOpeningNow;
+    const el = widgetContentRef.current;
+    if (!el) return;
+    // Slide out left, then slide in from right
+    el.animate([
+      { transform: 'translateX(0)', opacity: 1 },
+      { transform: 'translateX(-100%)', opacity: 0 },
+    ], { duration: 350, easing: 'cubic-bezier(0.55, 0, 1, 0.45)', fill: 'forwards' })
+      .onfinish = () => {
+        el.animate([
+          { transform: 'translateX(100%)', opacity: 0 },
+          { transform: 'translateX(0)', opacity: 1 },
+        ], { duration: 350, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'forwards' });
+      };
+  }, [c.bonusOpening]);
+
   const stats = useMemo(() => {
     const totalBetAll = bonuses.reduce((s, b) => s + (Number(b.betSize) || 0), 0);
     const openedBonuses = bonuses.filter(b => b.opened);
@@ -285,7 +307,7 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
   }, []);
 
   return (
-    <div className="bht11" style={{ fontFamily: "'Inter', sans-serif", fontSize: '15px', width: '100%', height: '100%', overflow: 'hidden' }}>
+    <div className="bht11" ref={widgetContentRef} style={{ fontFamily: "'Inter', sans-serif", fontSize: '15px', width: '100%', height: '100%', overflow: 'hidden' }}>
 
       {/* ═══ 1. Header ═══ */}
       <div className="bht11-header">
