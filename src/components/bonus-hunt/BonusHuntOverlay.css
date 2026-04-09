@@ -430,6 +430,32 @@
   overflow: hidden;
   border-radius: 12px;
 }
+.bht11:not(.bht11--opening) .bht-cpt-card-info {
+  justify-content: flex-end;
+  gap: 3px;
+  padding: 0;
+  background: linear-gradient(180deg, rgba(6,10,32,0.08) 0%, rgba(6,10,32,0.14) 46%, rgba(6,10,32,0.9) 47%, rgba(3,6,20,0.96) 100%);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.bht11:not(.bht11--opening) .bht-cpt-card-row1,
+.bht11:not(.bht11--opening) .bht-cpt-card-row2 {
+  padding-left: 12px;
+  padding-right: 12px;
+}
+.bht11:not(.bht11--opening) .bht-cpt-card-row1 {
+  padding-top: 8px;
+}
+.bht11:not(.bht11--opening) .bht-cpt-card-row2 {
+  padding-bottom: 8px;
+}
+.bht11:not(.bht11--opening) .bht-cpt-card-name,
+.bht11:not(.bht11--opening) .bht-cpt-card-idx,
+.bht11:not(.bht11--opening) .bht-cpt-card-bet,
+.bht11:not(.bht11--opening) .bht-cpt-card-payout,
+.bht11:not(.bht11--opening) .bht-cpt-card-multi {
+  text-shadow: none;
+}
 .bht-cpt-card-row1 {
   display: flex;
   align-items: center;
