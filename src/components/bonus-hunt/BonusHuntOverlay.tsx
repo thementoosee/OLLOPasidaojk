@@ -45,6 +45,7 @@ interface Bonus {
   slot?: { name?: string; image?: string };
   betSize?: number;
   payout?: number;
+  multiplier?: number | null;
   opened?: boolean;
   isSuperBonus?: boolean;
   isExtremeBonus?: boolean;
@@ -381,7 +382,7 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
             const renderCompactCard = (bonus: Bonus, idx: number, key: string | number) => {
               const payout = Number(bonus.payout) || 0;
               const bet = Number(bonus.betSize) || 0;
-              const multi = bet > 0 ? payout / bet : 0;
+              const multi = bonus.multiplier != null ? bonus.multiplier : (bet > 0 ? payout / bet : 0);
               const isExtreme = bonus.isExtremeBonus || bonus.isExtreme;
               const isSuper = bonus.isSuperBonus;
               return (
@@ -592,6 +593,7 @@ export function BonusHuntOverlay({ huntId, embedded = false }: BonusHuntOverlayP
       slot: { name: item.slot_name, image: item.slot_image_url || '/image.png' },
       betSize: item.payment_amount || item.bet_amount,
       payout: item.result_amount || 0,
+      multiplier: item.multiplier,
       opened: item.status === 'opened',
       isSuperBonus: item.is_super_bonus === true,
       isExtremeBonus: item.is_extreme_bonus === true,
