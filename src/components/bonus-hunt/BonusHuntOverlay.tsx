@@ -361,6 +361,13 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
               );
             };
             if (bonuses.length === 0) return null;
+            if (bonuses.length < 3) {
+              return (
+                <div key="compact-static" className="bht-compact-track">
+                  {bonuses.map((b, i) => renderCompactCard(b, i, b.id || i))}
+                </div>
+              );
+            }
             return (
               <div key="compact-scroll" className="bht-compact-track bht-compact-track--scroll"
                 style={{ '--bht-compact-count': bonuses.length } as React.CSSProperties}>
