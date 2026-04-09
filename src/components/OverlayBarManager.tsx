@@ -6,11 +6,13 @@ interface BarConfig {
   nowText?: string;
   nextText?: string;
   brandLogo?: string;
-  streamMode?: 'raw' | 'wager';
+  streamMode?: 'Opening' | 'Bonus Hunt' | 'Chill' | 'Fever Champions' | 'raw' | 'wager';
   logoFit?: 'contain' | 'cover';
   logoScale?: number;
   casinoLogoScale?: number;
 }
+
+type StreamMode = 'Opening' | 'Bonus Hunt' | 'Chill' | 'Fever Champions';
 
 interface Casino {
   id: string;
@@ -184,6 +186,167 @@ export function OverlayBarManager({ showOnlyButtons = false, showOnlySelects = f
       }
     } catch (error) {
       console.error('Error saving mode:', error);
+    }
+  };
+
+  const activateLiveOverlayMode = async (mode: StreamMode) => {
+    const overlayTypeByMode = {
+      'Opening': 'bonus_opening',
+      'Bonus Hunt': 'bonus_hunt',
+      'Chill': 'chill',
+      'Fever Champions': 'fever_champions'
+    } as const;
+
+    const activeOverlayType = overlayTypeByMode[mode];
+    const overlayTypes = Object.values(overlayTypeByMode);
+
+    await Promise.all(
+      overlayTypes.map((type) =>
+        supabase
+          .from('overlays')
+          .update({ is_active: type === activeOverlayType })
+          .eq('type', type)
+      )
+    );
+
+    await Promise.all([
+      supabase
+        .from('chill_sessions')
+        .update({ show_on_main_overlay: false, updated_at: new Date().toISOString() })
+        .neq('id', '00000000-0000-0000-0000-000000000000'),
+      supabase
+        .from('bonus_hunts')
+        .update({ show_on_main_overlay: false, updated_at: new Date().toISOString() })
+        .neq('id', '00000000-0000-0000-0000-000000000000'),
+      supabase
+        .from('bonus_openings')
+        .update({ show_on_main_overlay: false, updated_at: new Date().toISOString() })
+        .neq('id', '00000000-0000-0000-0000-000000000000'),
+      supabase
+        .from('fever_tournaments')
+        .update({ show_on_main_overlay: false, updated_at: new Date().toISOString() })
+        .neq('id', '00000000-0000-0000-0000-000000000000')
+    ]);
+
+    if (mode === 'Chill') {
+      const { data: activeChill, error } = await supabase
+        .from('chill_sessions')
+        .select('id')
+        .is('ended_at', null)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (activeChill) {
+        const { error: updateError } = await supabase
+          .from('chill_sessions')
+          .update({ show_on_main_overlay: true, updated_at: new Date().toISOString() })
+          .eq('id', activeChill.id);
+
+        if (updateError) throw updateError;
+      }
+
+      return;
+    }
+
+    if (mode === 'Bonus Hunt') {
+      const { data: activeHunt, error } = await supabase
+        .from('bonus_hunts')
+        .select('id, status')
+        .in('status', ['active', 'opening'])
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (activeHunt) {
+        const updates: Record<string, unknown> = {
+          show_on_main_overlay: true,
+          updated_at: new Date().toISOString()
+        };
+
+        if (activeHunt.status === 'opening') {
+          updates.status = 'active';
+        }
+
+        const { error: updateError } = await supabase
+          .from('bonus_hunts')
+          .update(updates)
+          .eq('id', activeHunt.id);
+
+        if (updateError) throw updateError;
+      }
+
+      return;
+    }
+
+    if (mode === 'Opening') {
+      const { data: activeOpening, error } = await supabase
+        .from('bonus_openings')
+        .select('id')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (activeOpening) {
+        const { error: updateError } = await supabase
+          .from('bonus_openings')
+          .update({ show_on_main_overlay: true, updated_at: new Date().toISOString() })
+          .eq('id', activeOpening.id);
+
+        if (updateError) throw updateError;
+      }
+
+      return;
+    }
+
+    const { data: activeTournament, error } = await supabase
+      .from('fever_tournaments')
+      .select('id')
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    if (activeTournament) {
+      const { error: updateError } = await supabase
+        .from('fever_tournaments')
+        .update({ show_on_main_overlay: true, updated_at: new Date().toISOString() })
+        .eq('id', activeTournament.id);
+
+      if (updateError) throw updateError;
+    }
+  };
+
+  const handleModeChange = async (mode: StreamMode) => {
+    const newConfig = { ...config, streamMode: mode };
+    setAutoGameMode(false);
+    setConfig(newConfig);
+
+    try {
+      if (overlayId) {
+        const { error } = await supabase
+          .from('overlays')
+          .update({
+            config: newConfig,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', overlayId);
+
+        if (error) throw error;
+      }
+
+      await activateLiveOverlayMode(mode);
+    } catch (error) {
+      console.error('Error changing game mode:', error);
     }
   };
 
@@ -404,21 +567,7 @@ export function OverlayBarManager({ showOnlyButtons = false, showOnlySelects = f
           </div>
           <select
             value={config.streamMode || 'Opening'}
-            onChange={async (e) => {
-              setAutoGameMode(false);
-              const newConfig = { ...config, streamMode: e.target.value as 'raw' | 'wager' };
-              setConfig(newConfig);
-
-              if (overlayId) {
-                await supabase
-                  .from('overlays')
-                  .update({
-                    config: newConfig,
-                    updated_at: new Date().toISOString()
-                  })
-                  .eq('id', overlayId);
-              }
-            }}
+            onChange={(e) => handleModeChange(e.target.value as StreamMode)}
             className="w-full px-4 py-3 rounded-lg text-sm"
             style={{
               background: '#1f1f1f',
@@ -594,21 +743,7 @@ export function OverlayBarManager({ showOnlyButtons = false, showOnlySelects = f
           </div>
           <select
             value={config.streamMode || 'Opening'}
-            onChange={async (e) => {
-              setAutoGameMode(false);
-              const newConfig = { ...config, streamMode: e.target.value as 'raw' | 'wager' };
-              setConfig(newConfig);
-
-              if (overlayId) {
-                await supabase
-                  .from('overlays')
-                  .update({
-                    config: newConfig,
-                    updated_at: new Date().toISOString()
-                  })
-                  .eq('id', overlayId);
-              }
-            }}
+            onChange={(e) => handleModeChange(e.target.value as StreamMode)}
             className="w-full px-4 py-3 rounded-lg text-sm"
             style={{
               background: '#1f1f1f',
