@@ -471,7 +471,7 @@
   100% { transform: translateY(-50%); }
 }
 .bht-compact-track--scroll {
-  animation: bht-compact-scroll calc(var(--bht-compact-count, 5) * 3s) linear infinite;
+  animation: bht-compact-scroll calc(var(--bht-compact-count, 5) * 5s) linear infinite;
 }
 
 /* ── Compact bonus cards ── */

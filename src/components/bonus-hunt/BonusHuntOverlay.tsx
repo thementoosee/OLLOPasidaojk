@@ -194,14 +194,17 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
               const total = bonuses.length;
               if (total === 0) return null;
               const ci = isOpening && currentIndex >= 0 ? currentIndex : carouselIdx % total;
+              const posMap: Record<string, string> = {
+                '-2': 'bht-stack-card--far-left',
+                '-1': 'bht-stack-card--left',
+                '0':  'bht-stack-card--center',
+                '1':  'bht-stack-card--right',
+                '2':  'bht-stack-card--far-right'
+              };
               return bonuses.map((bonus, bIdx) => {
                 const rawDist = ((bIdx - ci) % total + total) % total;
                 const dist = rawDist <= Math.floor(total / 2) ? rawDist : rawDist - total;
-                const posCls = dist === 0 ? 'bht-stack-card--center'
-                             : dist === -1 ? 'bht-stack-card--left'
-                             : dist === 1 ? 'bht-stack-card--right'
-                             : dist < -1 ? 'bht-stack-card--exit-left'
-                             : 'bht-stack-card--exit-right';
+                const posCls = posMap[String(dist)] || 'bht-stack-card--hidden';
                 return (
                   <div key={`stk-${bIdx}`}
                     className={`bht-stack-card ${posCls}${bonus.opened ? ' bht-stack-card--opened' : ''}${bonus.isSuperBonus ? ' bht-stack-card--super' : ''}${(bonus.isExtremeBonus || bonus.isExtreme) ? ' bht-stack-card--extreme' : ''}`}>
