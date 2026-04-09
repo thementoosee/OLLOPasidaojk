@@ -1,5 +1,7 @@
 import React, { useMemo, useEffect, useLayoutEffect, useRef, useState, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
+import { avatarEvents } from '../../systems/avatar/AvatarEventBus';
+import type { CardPosition } from '../../systems/avatar/types';
 import './BonusHuntOverlay.css';
 
 /* ═══════════════════════════════════════════════════════
@@ -90,140 +92,227 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
   }, [bonuses, startMoney, stopLoss]);
 
   /* ══════════════════════════════════════════════════════
-     3D Carousel — Imperative DOM animation system
+     3D Carousel — Web Animations API (zero CSS transitions)
      ──────────────────────────────────────────────────────
-     WHY IMPERATIVE: React re-renders on every Supabase update,
-     which destroys/recreates DOM nodes and kills CSS transitions.
-     By decoupling the visual carousel state from React rendering,
-     we ensure the SAME DOM nodes persist and CSS transitions work.
+     Uses element.animate() for explicit keyframe animations.
+     CSS transitions are REMOVED from .bht-carousel-card so React
+     re-renders can never break in-flight animation.
      ══════════════════════════════════════════════════════ */
 
   const stageRef = useRef<HTMLDivElement>(null);
   const centerRef = useRef(0);
-  const initializedRef = useRef(false);
-  const prevBonusCountRef = useRef(0);
+  const mountedRef = useRef(false);
+  const prevCountRef = useRef(0);
 
-  /*
-   * Position presets indexed by slot offset from center (-2 to +2).
-   * Each tuple: [translateX, translateZ, rotateY, scale, opacity, blur]
-   * Cards outside this range get directional exit positions.
-   */
-  const SLOT_PRESETS: readonly (readonly [number, number, number, number, number, number])[] = [
-    [-170, -120, 35, 0.65, 0.3, 1],   // offset -2 (far left)
-    [-95,  -50,  20, 0.85, 0.7, 0],   // offset -1 (left)
-    [0,     20,   0, 1,    1,   0],   // offset  0 (center)
-    [95,   -50, -20, 0.85, 0.7, 0],   // offset +1 (right)
-    [170, -120, -35, 0.65, 0.3, 1],   // offset +2 (far right)
-  ] as const;
+  const ANIM_MS = 800;
+  const EASING = 'cubic-bezier(0.25, 0.46, 0.45, 0.94)';
 
-  /**
-   * Apply position to a single card element.
-   * Uses data-idx attribute to identify cards, NOT DOM child order.
-   */
-  const applyPosition = (el: HTMLElement, dist: number) => {
-    const slotIdx = dist + 2; // map -2..+2 → 0..4
-    const slot = SLOT_PRESETS[slotIdx];
+  // Slot presets: [translateX, translateZ, rotateY, scale, opacity, blur]
+  const SLOTS: [number, number, number, number, number, number][] = [
+    [-170, -120,  35, 0.65, 0.3, 1],
+    [ -95,  -50,  20, 0.85, 0.7, 0],
+    [   0,   20,   0, 1,    1,   0],
+    [  95,  -50, -20, 0.85, 0.7, 0],
+    [ 170, -120, -35, 0.65, 0.3, 1],
+  ];
 
-    if (slot) {
-      const [tx, tz, ry, sc, op, bl] = slot;
-      el.style.transform = `translateX(${tx}px) translateZ(${tz}px) rotateY(${ry}deg) scale(${sc})`;
-      el.style.opacity = String(op);
-      el.style.filter = bl > 0 ? `brightness(0.45) blur(${bl}px)` : '';
-      el.style.zIndex = dist === 0 ? '3' : Math.abs(dist) === 1 ? '1' : '0';
-      el.style.pointerEvents = '';
-    } else {
-      // Card is beyond visible range → exit in the direction it was heading
-      // This prevents "teleporting through center" when wrapping around
-      const exitX = dist < 0 ? -260 : 260;
-      const exitRY = dist < 0 ? 50 : -50;
-      el.style.transform = `translateX(${exitX}px) translateZ(-200px) rotateY(${exitRY}deg) scale(0.4)`;
-      el.style.opacity = '0';
-      el.style.filter = 'brightness(0.3) blur(3px)';
-      el.style.zIndex = '-1';
-      el.style.pointerEvents = 'none';
+  const buildTfm = (tx: number, tz: number, ry: number, sc: number) =>
+    `translateX(${tx}px) translateZ(${tz}px) rotateY(${ry}deg) scale(${sc})`;
+
+  const targetFor = (dist: number) => {
+    const s = SLOTS[dist + 2];
+    if (s) {
+      const [tx, tz, ry, sc, op, bl] = s;
+      return {
+        transform: buildTfm(tx, tz, ry, sc),
+        opacity: String(op),
+        filter: bl > 0 ? `brightness(0.45) blur(${bl}px)` : 'none',
+        zIndex: dist === 0 ? '3' : Math.abs(dist) === 1 ? '1' : '0',
+        pointerEvents: '' as string,
+      };
     }
+    const exitX = dist < 0 ? -260 : 260;
+    const exitRY = dist < 0 ? 50 : -50;
+    return {
+      transform: buildTfm(exitX, -200, exitRY, 0.4),
+      opacity: '0',
+      filter: 'brightness(0.3) blur(3px)',
+      zIndex: '-1',
+      pointerEvents: 'none',
+    };
   };
 
-  /**
-   * Position ALL cards relative to the given center index.
-   * Looks up cards by data-idx attribute for React-reconciliation safety.
-   * @param ci - The bonus index that should be centered
-   * @param animate - Whether CSS transitions should be active
-   */
-  const positionAllCards = useCallback((ci: number, animate: boolean) => {
+  /** Set position immediately — no animation */
+  const setImmediate = (el: HTMLElement, t: ReturnType<typeof targetFor>) => {
+    el.getAnimations().forEach(a => a.cancel());
+    el.style.transform = t.transform;
+    el.style.opacity = t.opacity;
+    el.style.filter = t.filter;
+    el.style.zIndex = t.zIndex;
+    el.style.pointerEvents = t.pointerEvents;
+  };
+
+  /** Animate from current computed position to target via Web Animations API */
+  const animateTo = (el: HTMLElement, t: ReturnType<typeof targetFor>) => {
+    // Commit and cancel running animations so getComputedStyle reads final values
+    el.getAnimations().forEach(a => { try { a.commitStyles(); } catch(_) {} a.cancel(); });
+    const cs = getComputedStyle(el);
+    const from = {
+      transform: cs.transform || 'none',
+      opacity: cs.opacity || '1',
+      filter: cs.filter || 'none',
+    };
+    // Set final inline styles (take effect after animation ends)
+    el.style.transform = t.transform;
+    el.style.opacity = t.opacity;
+    el.style.filter = t.filter;
+    el.style.zIndex = t.zIndex;
+    el.style.pointerEvents = t.pointerEvents;
+    // Run explicit from→to animation
+    el.animate(
+      [
+        { transform: from.transform, opacity: from.opacity, filter: from.filter },
+        { transform: t.transform, opacity: t.opacity, filter: t.filter },
+      ],
+      { duration: ANIM_MS, easing: EASING }
+    );
+  };
+
+  /** Position all cards relative to center index */
+  const positionAll = useCallback((ci: number, animate: boolean) => {
     const stage = stageRef.current;
     if (!stage) return;
     const cards = stage.querySelectorAll<HTMLElement>('[data-idx]');
     const total = cards.length;
     if (total === 0) return;
-
     cards.forEach((el) => {
-      // Toggle transition
-      if (animate) {
-        el.classList.remove('no-transition');
-      } else {
-        el.classList.add('no-transition');
-      }
-
-      const idx = parseInt(el.getAttribute('data-idx') || '0', 10);
+      const idx = parseInt(el.getAttribute('data-idx')!, 10);
       const rawDist = ((idx - ci) % total + total) % total;
       const dist = rawDist <= Math.floor(total / 2) ? rawDist : rawDist - total;
-      applyPosition(el, dist);
+      const t = targetFor(dist);
+      if (animate) animateTo(el, t); else setImmediate(el, t);
     });
-
-    // If we disabled transitions, force a reflow to commit positions,
-    // then re-enable so NEXT position change will animate
-    if (!animate) {
-      void stage.offsetHeight; // force reflow
-      cards.forEach((el) => el.classList.remove('no-transition'));
-    }
   }, []);
 
-  /*
-   * Initial positioning — runs ONCE on mount (no animation).
-   * Also handles card count changes (new bonuses added/removed).
-   */
+  // First mount: position without animation before paint
   useLayoutEffect(() => {
     if (bonuses.length === 0) return;
-
-    if (!initializedRef.current) {
-      // FIRST MOUNT: position without animation
-      initializedRef.current = true;
+    if (!mountedRef.current) {
+      mountedRef.current = true;
       const ci = isOpening && currentIndex >= 0 ? currentIndex : 0;
       centerRef.current = ci;
-      positionAllCards(ci, false);
-    } else if (bonuses.length !== prevBonusCountRef.current) {
-      // Card count changed: reposition without animation to avoid jumps
-      // Keep current center, just clamp it
+      positionAll(ci, false);
+    } else if (bonuses.length !== prevCountRef.current) {
       centerRef.current = Math.min(centerRef.current, bonuses.length - 1);
-      positionAllCards(centerRef.current, false);
+      positionAll(centerRef.current, false);
     }
-    prevBonusCountRef.current = bonuses.length;
-  }, [bonuses.length, positionAllCards]);
+    prevCountRef.current = bonuses.length;
+  }, [bonuses.length, positionAll]);
 
-  /*
-   * Auto-rotate timer.
-   * Uses setInterval + positionAllCards(animated).
-   * Cleaned up when entering opening mode or when card count changes.
-   */
+  // Helper for avatar events
+  const getCardPosition = useCallback((_index: number, _total: number): CardPosition => {
+    return { x: 0, y: -0.3, offset: 0 };
+  }, []);
+
+  // Auto-rotate
   useEffect(() => {
     if (bonuses.length < 2 || isOpening) return;
     const id = setInterval(() => {
+      const prevCenter = centerRef.current;
       centerRef.current = (centerRef.current + 1) % bonuses.length;
-      positionAllCards(centerRef.current, true);
+      const newCenter = centerRef.current;
+      positionAll(newCenter, true);
+
+      const pos: CardPosition = { x: 0, y: -0.3, offset: 0 };
+      avatarEvents.emit('cardMoved', {
+        direction: 'right',
+        fromIndex: prevCenter,
+        toIndex: newCenter,
+        velocity: 1,
+      });
+      avatarEvents.emit('cardFocused', {
+        index: newCenter,
+        position: pos,
+        slotName: bonuses[newCenter]?.slotName || bonuses[newCenter]?.slot?.name,
+      });
     }, 2500);
     return () => clearInterval(id);
-  }, [bonuses.length, isOpening, positionAllCards]);
+  }, [bonuses.length, isOpening, positionAll, bonuses]);
 
-  /*
-   * Opening mode: snap to the current opening index (with animation).
-   */
+  // Opening mode: snap to current with animation
   useEffect(() => {
     if (isOpening && currentIndex >= 0) {
+      const prevCenter = centerRef.current;
       centerRef.current = currentIndex;
-      positionAllCards(currentIndex, true);
+      positionAll(currentIndex, true);
+
+      const direction = currentIndex > prevCenter ? 'right' : 'left';
+      const pos: CardPosition = { x: 0, y: -0.3, offset: 0 };
+      avatarEvents.emit('cardMoved', {
+        direction,
+        fromIndex: prevCenter,
+        toIndex: currentIndex,
+        velocity: 1.5,
+      });
+      avatarEvents.emit('cardFocused', {
+        index: currentIndex,
+        position: pos,
+        slotName: bonuses[currentIndex]?.slotName || bonuses[currentIndex]?.slot?.name,
+      });
     }
-  }, [isOpening, currentIndex, positionAllCards]);
+  }, [isOpening, currentIndex, positionAll, bonuses]);
+
+  /*
+   * Detect when a bonus gets opened with a result.
+   * Triggers cardOpened / bigWin / rarePull / suspenseMoment for the avatar.
+   */
+  const prevOpenedRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    const prevOpened = prevOpenedRef.current;
+    const nowOpened = new Set<string>();
+    for (const b of bonuses) {
+      if (b.opened && b.id) nowOpened.add(b.id);
+    }
+
+    // Find newly opened bonuses
+    for (const id of nowOpened) {
+      if (!prevOpened.has(id)) {
+        const bonus = bonuses.find((bb) => bb.id === id);
+        if (!bonus) continue;
+        const bet = Number(bonus.betSize) || 0;
+        const payout = Number(bonus.payout) || 0;
+        const multi = bet > 0 ? payout / bet : 0;
+        const idx = bonuses.indexOf(bonus);
+
+        avatarEvents.emit('cardOpened', {
+          index: idx,
+          slotName: bonus.slotName || bonus.slot?.name,
+          multiplier: multi,
+        });
+
+        // Big win reactions
+        if (multi >= 100) {
+          avatarEvents.emit('bigWin', { multiplier: multi, amount: payout });
+        }
+
+        // Rare pull (super / extreme bonus)
+        if (bonus.isSuperBonus) {
+          avatarEvents.emit('rarePull', { slotName: bonus.slotName, type: 'super' });
+        }
+        if (bonus.isExtremeBonus || bonus.isExtreme) {
+          avatarEvents.emit('rarePull', { slotName: bonus.slotName, type: 'extreme' });
+        }
+
+        // Last bonus suspense
+        const remaining = bonuses.filter((bb) => !bb.opened);
+        if (remaining.length <= 1) {
+          avatarEvents.emit('suspenseMoment', { type: 'lastBonus' });
+        }
+      }
+    }
+
+    prevOpenedRef.current = nowOpened;
+  }, [bonuses]);
 
   return (
     <div className="bht11" style={{ fontFamily: "'Inter', sans-serif", fontSize: '15px', width: '100%', height: '100%', overflow: 'hidden' }}>
@@ -389,6 +478,9 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
 
 const MemoizedWidget = React.memo(BonusHuntWidget);
 
+/* Lazy-load the avatar canvas to avoid blocking initial render */
+const AvatarCanvas = React.lazy(() => import('../avatar/AvatarCanvas'));
+
 /* ═══════════════════════════════════════════════════════
    Supabase Data Bridge
    ═══════════════════════════════════════════════════════ */
@@ -496,9 +588,33 @@ export function BonusHuntOverlay({ huntId, embedded = false }: BonusHuntOverlayP
 
   if (!hunt) return null;
 
+  /* Avatar model URL — configure via environment or hardcode your model path.
+     Supports any humanoid GLB/GLTF (Mixamo, ReadyPlayerMe, VRM-exported, etc.) */
+  const avatarModelUrl = (import.meta as any).env?.VITE_AVATAR_MODEL_URL || '/models/avatar.glb';
+
   return (
     <div style={{ width: '288px', height: '720px', position: 'relative', marginTop: '0px', marginLeft: '62px' }}>
       <MemoizedWidget config={config} />
+
+      {/* 3D Avatar overlay — positioned to the right of the widget */}
+      <React.Suspense fallback={null}>
+        <AvatarCanvas
+          modelUrl={avatarModelUrl}
+          width="280px"
+          height="350px"
+          scale={1}
+          position={[0, -0.8, 0]}
+          rotation={[0, 0, 0]}
+          fov={35}
+          cameraPosition={[0, 1.2, 3]}
+          style={{
+            position: 'absolute',
+            right: '-290px',
+            bottom: '20px',
+            zIndex: 10,
+          }}
+        />
+      </React.Suspense>
     </div>
   );
 }
