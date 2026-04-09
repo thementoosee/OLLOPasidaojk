@@ -97,7 +97,14 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
     '1':  { transform: 'translateX(95px) translateZ(-50px) rotateY(-20deg) scale(0.85)', zIndex: 1, opacity: 0.7, filter: 'brightness(0.7)' },
     '2':  { transform: 'translateX(170px) translateZ(-120px) rotateY(-35deg) scale(0.65)', zIndex: 0, opacity: 0.3, filter: 'brightness(0.45) blur(1px)' },
   };
-  const hiddenStyle: React.CSSProperties = { transform: 'translateX(0) translateZ(-200px) rotateY(0deg) scale(0.4)', zIndex: -1, opacity: 0, filter: 'brightness(0.3) blur(3px)', pointerEvents: 'none' };
+  /* Directional hidden positions — cards exit/enter from the correct side */
+  const hiddenLeft: React.CSSProperties = { transform: 'translateX(-260px) translateZ(-200px) rotateY(45deg) scale(0.4)', zIndex: -1, opacity: 0, filter: 'brightness(0.3) blur(3px)', pointerEvents: 'none' };
+  const hiddenRight: React.CSSProperties = { transform: 'translateX(260px) translateZ(-200px) rotateY(-45deg) scale(0.4)', zIndex: -1, opacity: 0, filter: 'brightness(0.3) blur(3px)', pointerEvents: 'none' };
+
+  const getPos = (dist: number): React.CSSProperties => {
+    if (posStyles[String(dist)]) return posStyles[String(dist)];
+    return dist < 0 ? hiddenLeft : hiddenRight;
+  };
 
   /* ── React state carousel — same approach as working main project ── */
   const [carouselIdx, setCarouselIdx] = useState(0);
@@ -180,9 +187,9 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
               const total = bonuses.length;
               const rawDist = ((bIdx - carouselIdx) % total + total) % total;
               const dist = rawDist <= Math.floor(total / 2) ? rawDist : rawDist - total;
-              const pos = posStyles[String(dist)] || hiddenStyle;
+              const pos = getPos(dist);
               return (
-                <div key={`stk-${bIdx}`}
+                <div key={bonus.id || `stk-${bonus.slotName}-${bIdx}`}
                   style={{
                     position: 'absolute' as const, width: 120, height: 190,
                     transition: 'transform 0.8s cubic-bezier(0.25,0.46,0.45,0.94), opacity 0.8s cubic-bezier(0.25,0.46,0.45,0.94), filter 0.8s cubic-bezier(0.25,0.46,0.45,0.94)',
