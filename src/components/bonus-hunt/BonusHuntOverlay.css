@@ -430,22 +430,24 @@
 }
 .bht11:not(.bht11--opening) .bht-cpt-card-info {
   justify-content: flex-end;
-  gap: 3px;
-  padding: 0;
+  gap: 1px;
+  padding: 1px 0 2px 0;
   background: linear-gradient(180deg, rgba(6,10,32,0.08) 0%, rgba(6,10,32,0.14) 46%, rgba(6,10,32,0.9) 47%, rgba(3,6,20,0.96) 100%);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
 .bht11:not(.bht11--opening) .bht-cpt-card-row1,
 .bht11:not(.bht11--opening) .bht-cpt-card-row2 {
-  padding-left: 12px;
-  padding-right: 12px;
+  padding-left: 0;
+  padding-right: 0;
 }
 .bht11:not(.bht11--opening) .bht-cpt-card-row1 {
-  padding-top: 3px;
+  padding-top: 0;
+  padding-left: 6px;
+  padding-right: 6px;
 }
 .bht11:not(.bht11--opening) .bht-cpt-card-row2 {
-  padding-bottom: 3px;
+  display: none;
 }
 .bht11:not(.bht11--opening) .bht-cpt-card-name,
 .bht11:not(.bht11--opening) .bht-cpt-card-idx,
@@ -483,6 +485,24 @@
   align-items: center;
   gap: 8px;
   font-size: 0.78em;
+}
+.bht11:not(.bht11--opening) .bht-cpt-card-bet {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  font-weight: 800;
+  color: #93c5fd;
+  white-space: nowrap;
+  text-shadow: 0 1px 4px rgba(0,0,0,1), 0 0 8px rgba(0,0,0,0.5);
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  font-size: 0.75em;
+  z-index: 3;
+  /* Hide "BET " text using font-size trick */
+  text-indent: 2.5em;
+  overflow: hidden;
+  width: 3.5em;
 }
 .bht-cpt-card-bet {
   font-weight: 800;
