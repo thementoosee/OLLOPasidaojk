@@ -160,119 +160,165 @@
 
 /* ════════════════════════════════════════════════════════════════
    4. 3D ANIMATED CARD CAROUSEL
+   
+   HOW IT WORKS:
+   - The .bht-stack container has perspective: 1000px
+   - All cards are position: absolute inside it
+   - Each card has a position class: --center, --left, --right, 
+     --far-left, --far-right, or --hidden
+   - Each position class has different transform values 
+     (translateX, translateZ, rotateY, scale)
+   - The BASE .bht-stack-card class has:
+     transition: transform 0.8s cubic-bezier(...)
+   - When React re-renders and changes the className, the SAME 
+     DOM element smoothly transitions between transform values
+   
+   WHY TELEPORTING HAPPENS:
+   If you use a key that includes carouselIdx, or if you filter
+   the array, React will UNMOUNT the old element and MOUNT a new
+   one. New elements have no "previous transform" to transition
+   from, so they appear instantly at their new position = TELEPORT.
    ════════════════════════════════════════════════════════════════ */
 .bht-stack {
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
-  position: relative !important;
-  height: 210px !important;
-  perspective: 1000px !important;
-  perspective-origin: 50% 50% !important;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  height: 210px;
+  perspective: 1000px;
+  perspective-origin: 50% 50%;
   margin: 6px 0;
-  overflow: visible !important;
+  overflow: visible;
 }
 
+/* BASE CARD — transition is THE critical property */
 .bht-stack-card {
-  position: absolute !important;
-  width: 120px !important;
-  height: 190px !important;
+  position: absolute;
+  width: 120px;
+  height: 190px;
   transition: transform 0.8s cubic-bezier(0.25,0.46,0.45,0.94),
               opacity 0.8s cubic-bezier(0.25,0.46,0.45,0.94),
               filter 0.8s cubic-bezier(0.25,0.46,0.45,0.94),
-              z-index 0s 0.4s !important;
-  transform-style: preserve-3d !important;
-  will-change: transform, opacity, filter !important;
+              z-index 0s 0.4s;
+  transform-style: preserve-3d;
+  will-change: transform, opacity, filter;
 }
 
+/* Hidden — off-screen, invisible (but STILL IN THE DOM) */
 .bht-stack-card--hidden {
-  transform: translateX(0) translateZ(-200px) rotateY(0deg) scale(0.4) !important;
-  z-index: -1 !important;
-  opacity: 0 !important;
+  transform: translateX(0) translateZ(-200px) rotateY(0deg) scale(0.4);
+  z-index: -1;
+  opacity: 0;
   pointer-events: none;
-  filter: brightness(0.3) blur(3px) !important;
+  filter: brightness(0.3) blur(3px);
 }
 
+/* Far left — barely visible, deep in perspective */
 .bht-stack-card--far-left {
-  transform: translateX(-170px) translateZ(-120px) rotateY(35deg) scale(0.65) !important;
-  z-index: 0 !important;
-  opacity: 0.3 !important;
-  filter: brightness(0.45) blur(1px) !important;
+  transform: translateX(-170px) translateZ(-120px) rotateY(35deg) scale(0.65);
+  z-index: 0;
+  opacity: 0.3;
+  filter: brightness(0.45) blur(1px);
 }
 
+/* Left — tilted, behind center */
 .bht-stack-card--left {
-  transform: translateX(-95px) translateZ(-50px) rotateY(20deg) scale(0.85) !important;
-  z-index: 1 !important;
-  opacity: 0.7 !important;
-  filter: brightness(0.7) !important;
+  transform: translateX(-95px) translateZ(-50px) rotateY(20deg) scale(0.85);
+  z-index: 1;
+  opacity: 0.7;
+  filter: brightness(0.7);
 }
 
+/* Center — hero card, front and center */
 .bht-stack-card--center {
-  transform: translateX(0) translateZ(20px) rotateY(0deg) scale(1) !important;
-  z-index: 3 !important;
-  opacity: 1 !important;
-  filter: brightness(1) !important;
+  transform: translateX(0) translateZ(20px) rotateY(0deg) scale(1);
+  z-index: 3;
+  opacity: 1;
+  filter: brightness(1);
 }
 
+/* Right — tilted, behind center */
 .bht-stack-card--right {
-  transform: translateX(95px) translateZ(-50px) rotateY(-20deg) scale(0.85) !important;
-  z-index: 1 !important;
-  opacity: 0.7 !important;
-  filter: brightness(0.7) !important;
+  transform: translateX(95px) translateZ(-50px) rotateY(-20deg) scale(0.85);
+  z-index: 1;
+  opacity: 0.7;
+  filter: brightness(0.7);
 }
 
+/* Far right — barely visible, deep in perspective */
 .bht-stack-card--far-right {
-  transform: translateX(170px) translateZ(-120px) rotateY(-35deg) scale(0.65) !important;
-  z-index: 0 !important;
-  opacity: 0.3 !important;
-  filter: brightness(0.45) blur(1px) !important;
+  transform: translateX(170px) translateZ(-120px) rotateY(-35deg) scale(0.65);
+  z-index: 0;
+  opacity: 0.3;
+  filter: brightness(0.45) blur(1px);
+}
+
+/* Exit left — fully invisible, continues leftward motion for smooth directional exit */
+.bht-stack-card--exit-left {
+  transform: translateX(-220px) translateZ(-200px) rotateY(45deg) scale(0.4);
+  z-index: -1;
+  opacity: 0;
+  pointer-events: none;
+  filter: brightness(0.2) blur(4px);
+}
+
+/* Exit right — fully invisible, continues rightward motion for smooth directional entry */
+.bht-stack-card--exit-right {
+  transform: translateX(220px) translateZ(-200px) rotateY(-45deg) scale(0.4);
+  z-index: -1;
+  opacity: 0;
+  pointer-events: none;
+  filter: brightness(0.2) blur(4px);
 }
 
 /* Center card float animation during opening */
 .bht-stack:not(.bht-stack--spinning) .bht-stack-card--center {
-  animation: bht-stack-float 3s ease-in-out infinite !important;
+  animation: bht-stack-float 3s ease-in-out infinite;
 }
 @keyframes bht-stack-float {
   0%, 100% { transform: translateX(0) translateZ(20px) rotateY(0deg) scale(1); }
   50%      { transform: translateX(0) translateZ(35px) rotateY(0deg) scale(1.04); }
 }
 
+/* Side card gentle tilt during opening */
 .bht-stack:not(.bht-stack--spinning) .bht-stack-card--left {
-  animation: bht-stack-tilt-left 4s ease-in-out infinite !important;
+  animation: bht-stack-tilt-left 4s ease-in-out infinite;
 }
 @keyframes bht-stack-tilt-left {
   0%, 100% { transform: translateX(-95px) translateZ(-50px) rotateY(20deg) scale(0.85); }
   50%      { transform: translateX(-95px) translateZ(-40px) rotateY(24deg) scale(0.87); }
 }
 .bht-stack:not(.bht-stack--spinning) .bht-stack-card--right {
-  animation: bht-stack-tilt-right 4s ease-in-out infinite !important;
+  animation: bht-stack-tilt-right 4s ease-in-out infinite;
 }
 @keyframes bht-stack-tilt-right {
   0%, 100% { transform: translateX(95px) translateZ(-50px) rotateY(-20deg) scale(0.85); }
   50%      { transform: translateX(95px) translateZ(-40px) rotateY(-24deg) scale(0.87); }
 }
 
-.bht-stack-card--opened { opacity: 0.5 !important; }
-.bht-stack-card--center.bht-stack-card--opened { opacity: 1 !important; }
+/* Opened cards dimmed */
+.bht-stack-card--opened { opacity: 0.5; }
+.bht-stack-card--center.bht-stack-card--opened { opacity: 1; }
 
+/* Super/Extreme glows */
 .bht-stack-card--super {
-  filter: drop-shadow(0 0 10px rgba(234,179,8,0.5)) !important;
+  filter: drop-shadow(0 0 10px rgba(234,179,8,0.5));
 }
 .bht-stack-card--extreme {
-  filter: drop-shadow(0 0 12px rgba(220,38,38,0.55)) !important;
+  filter: drop-shadow(0 0 12px rgba(220,38,38,0.55));
 }
 .bht-stack-card--left.bht-stack-card--super,
 .bht-stack-card--right.bht-stack-card--super {
-  filter: brightness(0.7) drop-shadow(0 0 10px rgba(234,179,8,0.5)) !important;
+  filter: brightness(0.7) drop-shadow(0 0 10px rgba(234,179,8,0.5));
 }
 .bht-stack-card--left.bht-stack-card--extreme,
 .bht-stack-card--right.bht-stack-card--extreme {
-  filter: brightness(0.7) drop-shadow(0 0 12px rgba(220,38,38,0.55)) !important;
+  filter: brightness(0.7) drop-shadow(0 0 12px rgba(220,38,38,0.55));
 }
 
 /* Extreme card "hiding behind other cards" 3D animation */
 .bht-stack:not(.bht-stack--spinning) .bht-stack-card--center.bht-stack-card--extreme {
-  animation: bht-extreme-hide-center 4s ease-in-out infinite !important;
+  animation: bht-extreme-hide-center 4s ease-in-out infinite;
 }
 @keyframes bht-extreme-hide-center {
   0%, 100% { transform: translateX(0) translateZ(20px) rotateY(0deg) scale(1); }
@@ -282,7 +328,7 @@
   75%      { transform: translateX(4px) translateZ(-5px) rotateY(-3deg) scale(0.95); }
 }
 .bht-stack:not(.bht-stack--spinning) .bht-stack-card--left.bht-stack-card--extreme {
-  animation: bht-extreme-hide-left 4.5s ease-in-out infinite !important;
+  animation: bht-extreme-hide-left 4.5s ease-in-out infinite;
 }
 @keyframes bht-extreme-hide-left {
   0%, 100% { transform: translateX(-95px) translateZ(-50px) rotateY(20deg) scale(0.85); }
@@ -291,7 +337,7 @@
   65%      { transform: translateX(-72px) translateZ(-70px) rotateY(26deg) scale(0.78); }
 }
 .bht-stack:not(.bht-stack--spinning) .bht-stack-card--right.bht-stack-card--extreme {
-  animation: bht-extreme-hide-right 4.5s ease-in-out infinite !important;
+  animation: bht-extreme-hide-right 4.5s ease-in-out infinite;
 }
 @keyframes bht-extreme-hide-right {
   0%, 100% { transform: translateX(95px) translateZ(-50px) rotateY(-20deg) scale(0.85); }
@@ -367,24 +413,6 @@
   transition: width 0.6s ease;
   position: relative;
   overflow: hidden;
-}
-.bht-progress-fill::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    110deg,
-    transparent 20%,
-    rgba(255,255,255,0.35) 40%,
-    rgba(255,255,255,0.35) 45%,
-    transparent 65%
-  );
-  background-size: 200% 100%;
-  animation: bht-progress-swipe 2.5s ease-in-out infinite;
-}
-@keyframes bht-progress-swipe {
-  0%   { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
 }
 .bht-progress-text {
   font-size: 0.75em;
@@ -477,7 +505,7 @@
 }
 @keyframes bht-cpt-extreme-pulse {
   0%, 100% { box-shadow: 0 0 18px 2px rgba(220,38,38,0.4), inset 0 0 10px rgba(220,38,38,0.1); }
-  50%      { box-shadow: 0 0 28px 6px rgba(220,38,38,0.6), inset 0 0 16px rgba(220,38,68,0.2); }
+  50%      { box-shadow: 0 0 28px 6px rgba(220,38,38,0.6), inset 0 0 16px rgba(220,38,38,0.2); }
 }
 
 /* Card image */

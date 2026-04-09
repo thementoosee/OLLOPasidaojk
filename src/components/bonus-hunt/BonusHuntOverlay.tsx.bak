@@ -2,9 +2,6 @@ import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { supabase } from '../../lib/supabase';
 import './BonusHuntOverlay.css';
 
-/* ═══════════════════════════════════════════════════════
-   TypeScript interfaces
-   ═══════════════════════════════════════════════════════ */
 interface BonusHunt {
   id: string;
   name: string;
@@ -60,8 +57,7 @@ interface BonusHuntConfig {
 }
 
 /* ═══════════════════════════════════════════════════════
-   V11 "Fever" Bonus Hunt Widget
-   EXACT COPY from working BonusHuntWidgetV11.jsx
+   V11 "Fever" Bonus Hunt Widget — EXACT REPLICATION
    ═══════════════════════════════════════════════════════ */
 function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
   const c = config || {};
@@ -70,6 +66,7 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
   const startMoney = Number(c.startMoney) || 0;
   const stopLoss = Number(c.stopLoss) || 0;
 
+  /* ─── Derived stats ─── */
   const stats = useMemo(() => {
     const totalBetAll = bonuses.reduce((s, b) => s + (Number(b.betSize) || 0), 0);
     const openedBonuses = bonuses.filter(b => b.opened);
@@ -78,28 +75,51 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
     const totalBetRemaining = Math.max(totalBetAll - totalBetOpened, 0);
     const superCount = bonuses.filter(b => b.isSuperBonus).length;
     const extremeCount = bonuses.filter(b => b.isExtremeBonus || b.isExtreme).length;
+
     const target = Math.max(startMoney - stopLoss, 0);
     const breakEven = totalBetAll > 0 ? target / totalBetAll : 0;
     const remaining = Math.max(target - totalWin, 0);
     const liveBE = totalBetRemaining > 0 ? remaining / totalBetRemaining : 0;
+
     return { totalBetAll, totalWin, superCount, extremeCount, breakEven, liveBE, openedCount: openedBonuses.length };
   }, [bonuses, startMoney, stopLoss]);
 
-  /* ── Auto-rotating carousel ── */
+  /* ════════════════════════════════════════════════════════════════
+     ██  AUTO-ROTATING CAROUSEL — THIS IS THE KEY PART  ██
+     
+     carouselIdx is a simple counter that increments every 2.5s.
+     It drives which position class each card gets.
+     The SAME DOM elements persist — only their className changes.
+     CSS transition handles the smooth 3D animation.
+     ════════════════════════════════════════════════════════════════ */
   const [carouselIdx, setCarouselIdx] = useState(0);
   useEffect(() => {
+    console.log('[BonusHuntWidget] MOUNT — carousel effect. bonuses:', bonuses.length);
     if (bonuses.length < 2) return;
     const id = setInterval(() => setCarouselIdx(i => (i + 1) % bonuses.length), 2500);
-    return () => clearInterval(id);
+    return () => {
+      console.log('[BonusHuntWidget] UNMOUNT — clearing carousel interval');
+      clearInterval(id);
+    };
   }, [bonuses.length]);
 
+  /* ─── Current bonus (first not-opened) ─── */
   const currentBonus = bonuses.find(b => !b.opened);
   const currentIndex = currentBonus ? bonuses.indexOf(currentBonus) : -1;
   const isOpening = !!c.bonusOpening && currentIndex >= 0;
+
   const huntTitle = c.bonusOpening ? 'BONUS OPENING' : 'BONUS HUNT';
 
+  const rootStyle: React.CSSProperties = {
+    fontFamily: "'Inter', sans-serif",
+    fontSize: '15px',
+    width: '100%',
+    height: '100%',
+    overflow: 'hidden',
+  };
+
   return (
-    <div className="bht11" style={{ fontFamily: "'Inter', sans-serif", fontSize: '15px', width: '100%', height: '100%', overflow: 'hidden' }}>
+    <div className="bht11" style={rootStyle}>
 
       {/* ═══ 1. Header ═══ */}
       <div className="bht11-header">
@@ -154,22 +174,50 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
         </div>
       </div>
 
-      {/* ═══ 4. 3D Rotating Card Stack ═══ */}
+      {/* ═══════════════════════════════════════════════════════════
+           4. 3D ROTATING CARD STACK
+           
+           CRITICAL RULES — DO NOT VIOLATE:
+           
+           1. ALL bonuses are ALWAYS rendered. No .filter() or .slice().
+           2. key={`stk-${bIdx}`} — bIdx is the ARRAY INDEX. NEVER 
+              include carouselIdx or any changing value in the key.
+           3. Only the className changes between renders. The DOM 
+              element stays the same. CSS transition does the rest.
+           4. Cards that are far from center get --hidden class 
+              (opacity 0), but they STILL EXIST in the DOM.
+           
+           If you violate any of these rules, cards will TELEPORT
+           instead of smoothly animating. The transition ONLY works
+           when the same DOM element changes its class attribute.
+           ═══════════════════════════════════════════════════════════ */}
       {bonuses.length > 0 && (
         <div className="bht11-stack-section">
-          <div className={`bht-stack${!isOpening ? ' bht-stack--spinning' : ''}`}>
+          <div className={`bht-stack${!isOpening ? ' bht-stack--spinning' : ''}`}
+            style={{ perspective: '1000px', perspectiveOrigin: '50% 50%' }}>
             {(() => {
               const total = bonuses.length;
               if (total === 0) return null;
               const ci = isOpening && currentIndex >= 0 ? currentIndex : carouselIdx % total;
-              const posMap: Record<string, string> = { '-2': 'bht-stack-card--far-left', '-1': 'bht-stack-card--left', '0': 'bht-stack-card--center', '1': 'bht-stack-card--right', '2': 'bht-stack-card--far-right' };
+              const posMap: Record<string, string> = {
+                '-2': 'bht-stack-card--far-left',
+                '-1': 'bht-stack-card--left',
+                '0':  'bht-stack-card--center',
+                '1':  'bht-stack-card--right',
+                '2':  'bht-stack-card--far-right'
+              };
               return bonuses.map((bonus, bIdx) => {
                 const rawDist = ((bIdx - ci) % total + total) % total;
                 const dist = rawDist <= Math.floor(total / 2) ? rawDist : rawDist - total;
                 const posCls = posMap[String(dist)] || 'bht-stack-card--hidden';
                 return (
                   <div key={`stk-${bIdx}`}
-                    className={`bht-stack-card ${posCls}${bonus.opened ? ' bht-stack-card--opened' : ''}${bonus.isSuperBonus ? ' bht-stack-card--super' : ''}${(bonus.isExtremeBonus || bonus.isExtreme) ? ' bht-stack-card--extreme' : ''}`}>
+                    className={`bht-stack-card ${posCls}${bonus.opened ? ' bht-stack-card--opened' : ''}${bonus.isSuperBonus ? ' bht-stack-card--super' : ''}${(bonus.isExtremeBonus || bonus.isExtreme) ? ' bht-stack-card--extreme' : ''}`}
+                    style={{
+                      transition: 'transform 0.8s cubic-bezier(0.25,0.46,0.45,0.94), opacity 0.8s cubic-bezier(0.25,0.46,0.45,0.94), filter 0.8s cubic-bezier(0.25,0.46,0.45,0.94), z-index 0s 0.4s',
+                      transformStyle: 'preserve-3d',
+                      willChange: 'transform, opacity, filter',
+                    }}>
                     <div className="bht-stack-card-inner">
                       <div className="bht-stack-card-img-wrap">
                         {bonus.slot?.image ? (
@@ -183,6 +231,7 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
               });
             })()}
           </div>
+          {/* ── Progress bar ── */}
           {(() => {
             const total = bonuses.length;
             const opened = bonuses.filter(b => b.opened).length;
@@ -199,7 +248,7 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
         </div>
       )}
 
-      {/* ═══ 5. Bonus List Section ═══ */}
+      {/* ═══ 5. Bonus List Section (Compact style) ═══ */}
       <div className="bht11-list-section">
         <div className="bht11-list-title">
           <span className="bht11-list-title-icon">📋</span>
@@ -221,7 +270,9 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
                       <img src={bonus.slot.image} alt={bonus.slotName}
                         className="bht-cpt-card-img"
                         onError={(e) => { const t = e.target as HTMLImageElement; t.src = ''; t.style.display = 'none'; }} />
-                    ) : <div className="bht-cpt-card-img-ph" />}
+                    ) : (
+                      <div className="bht-cpt-card-img-ph" />
+                    )}
                     {isExtreme && <div className="bht-cpt-blood-drip" />}
                     {isExtreme && <span className="bht-cpt-badge bht-cpt-badge--extreme">EXTREME</span>}
                     {!isExtreme && isSuper && <span className="bht-cpt-badge bht-cpt-badge--super">SUPER</span>}
@@ -244,6 +295,7 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
                 </div>
               );
             };
+
             if (isOpening) {
               const cardH = 140, gap = 6, step = cardH + gap;
               const offset = -(currentIndex * step);
@@ -273,7 +325,8 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
 const MemoizedWidget = React.memo(BonusHuntWidget);
 
 /* ═══════════════════════════════════════════════════════
-   Supabase Data Bridge
+   Supabase Data Bridge — fetches from DB and maps
+   to the V11 BonusHuntConfig format
    ═══════════════════════════════════════════════════════ */
 export function BonusHuntOverlay({ huntId, embedded = false }: BonusHuntOverlayProps = {}) {
   const [hunt, setHunt] = useState<BonusHunt | null>(null);
@@ -290,15 +343,20 @@ export function BonusHuntOverlay({ huntId, embedded = false }: BonusHuntOverlayP
         'postgres_changes',
         { event: '*', schema: 'public', table: 'bonus_hunts' },
         (payload) => {
+          console.log('[BonusHuntOverlay] Hunt change:', payload);
+
           if (payload.eventType === 'UPDATE' && currentHuntIdRef.current) {
             const newRecord = payload.new as any;
             const oldRecord = payload.old as any;
+
             if (newRecord.id === currentHuntIdRef.current &&
                 newRecord.show_on_main_overlay !== oldRecord.show_on_main_overlay) {
+              console.log('[BonusHuntOverlay] show_on_main_overlay changed, reloading');
               loadActiveHunt();
               return;
             }
           }
+
           loadActiveHunt();
         }
       )
@@ -306,34 +364,53 @@ export function BonusHuntOverlay({ huntId, embedded = false }: BonusHuntOverlayP
         'postgres_changes',
         { event: '*', schema: 'public', table: 'bonus_hunt_items' },
         (payload) => {
+          console.log('[BonusHuntOverlay] Item change:', payload);
           if (currentHuntIdRef.current) {
             loadHuntItems(currentHuntIdRef.current);
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('[BonusHuntOverlay] Subscription status:', status);
+      });
 
-    return () => { supabase.removeChannel(huntChannel); };
+    return () => {
+      supabase.removeChannel(huntChannel);
+    };
   }, [huntId]);
 
   const loadActiveHunt = async () => {
     try {
-      let query = supabase.from('bonus_hunts').select('*');
+      let query = supabase
+        .from('bonus_hunts')
+        .select('*');
+
       if (huntId) {
         query = query.eq('id', huntId);
       } else {
-        query = query.eq('show_on_main_overlay', true).in('status', ['active', 'opening']).order('created_at', { ascending: false }).limit(1);
+        query = query
+          .eq('show_on_main_overlay', true)
+          .in('status', ['active', 'opening'])
+          .order('created_at', { ascending: false })
+          .limit(1);
       }
+
       const { data, error } = await query.maybeSingle();
+
       if (error) throw error;
+
+      console.log('[BonusHuntOverlay] Hunt loaded:', data);
+
       if (data) {
         if (huntId && !data.show_on_main_overlay) {
+          console.log('[BonusHuntOverlay] Hunt is not active on main overlay, clearing...');
           currentHuntIdRef.current = null;
           setHunt(null);
           setItems([]);
           previousItemIdsRef.current = new Set();
           return;
         }
+
         currentHuntIdRef.current = data.id;
         setHunt(data);
         loadHuntItems(data.id);
@@ -350,8 +427,14 @@ export function BonusHuntOverlay({ huntId, embedded = false }: BonusHuntOverlayP
 
   const loadHuntItems = async (hId: string) => {
     try {
-      const { data, error } = await supabase.from('bonus_hunt_items').select('*').eq('hunt_id', hId).order('order_index', { ascending: true });
+      const { data, error } = await supabase
+        .from('bonus_hunt_items')
+        .select('*')
+        .eq('hunt_id', hId)
+        .order('order_index', { ascending: true });
+
       if (error) throw error;
+
       const newData = data || [];
       previousItemIdsRef.current = new Set(newData.map(item => item.id));
       setItems(newData);
@@ -360,6 +443,7 @@ export function BonusHuntOverlay({ huntId, embedded = false }: BonusHuntOverlayP
     }
   };
 
+  // Map Supabase data → V11 BonusHuntConfig
   const config = useMemo<BonusHuntConfig>(() => ({
     startMoney: hunt?.total_invested || 0,
     stopLoss: 0,
