@@ -339,9 +339,6 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
                         className="bht-cpt-card-img"
                         onError={(e) => { const t = e.target as HTMLImageElement; t.src = ''; t.style.display = 'none'; }} />
                     ) : <div className="bht-cpt-card-img-ph" />}
-                    {isExtreme && <div className="bht-cpt-blood-drip" />}
-                    {isExtreme && <span className="bht-cpt-badge bht-cpt-badge--extreme">EXTREME</span>}
-                    {!isExtreme && isSuper && <span className="bht-cpt-badge bht-cpt-badge--super">SUPER</span>}
                   </div>
                   <div className="bht-cpt-card-info">
                     <div className="bht-cpt-card-row1">
@@ -358,19 +355,12 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
                       )}
                     </div>
                   </div>
+                  {isExtreme && <span className="bht-cpt-badge bht-cpt-badge--extreme">EXTREME</span>}
+                  {!isExtreme && isSuper && <span className="bht-cpt-badge bht-cpt-badge--super">SUPER</span>}
                 </div>
               );
             };
-            if (isOpening) {
-              const cardH = 140, gap = 6, step = cardH + gap;
-              const offset = -(currentIndex * step);
-              return (
-                <div key="compact-static" className="bht-compact-track bht-compact-track--static"
-                  style={{ transform: `translateY(${offset}px)` }}>
-                  {bonuses.map((b, i) => renderCompactCard(b, i, b.id || i))}
-                </div>
-              );
-            }
+            if (bonuses.length === 0) return null;
             return (
               <div key="compact-scroll" className="bht-compact-track bht-compact-track--scroll"
                 style={{ '--bht-compact-count': bonuses.length } as React.CSSProperties}>
