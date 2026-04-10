@@ -104,21 +104,32 @@
   text-shadow: 0 0 12px rgba(96,165,250,0.3);
 }
 
-/* ── Break-Even slider ── */
+/* ── Break-Even marquee slider ── */
 .bht11-stat-card--be {
   overflow: hidden;
+  position: relative;
+  height: 38px;
+  align-items: stretch;
 }
 .bht11-be-slider {
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
-  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  transform: translateY(0);
+  animation: beSlide 30s ease-in-out infinite;
 }
 .bht11-be-slider > .bht11-stat-card-text {
-  flex-shrink: 0;
+  flex: 0 0 100%;
+  justify-content: center;
 }
-.bht11-be-slider--live {
-  transform: translateY(-50%);
+@keyframes beSlide {
+  0%    { transform: translateY(0); }
+  3%    { transform: translateY(0); }      /* slide in inicial */
+  47%   { transform: translateY(0); }      /* pause on inicial */
+  50%   { transform: translateY(-50%); }   /* slide to actual */
+  53%   { transform: translateY(-50%); }   /* settle */
+  97%   { transform: translateY(-50%); }   /* pause on actual */
+  100%  { transform: translateY(0); }       /* slide back to inicial */
 }
 
 /* ── 3. Count Bars ── */
