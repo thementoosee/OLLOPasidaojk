@@ -413,8 +413,13 @@
   border-color: rgba(220,38,38,0.9);
 }
 .bht-cpt-card--active::after {
-  border-color: rgba(134,239,172,0.7);
-  box-shadow: 0 0 10px 1px rgba(134,239,172,0.2);
+  border-color: #000000;
+}
+.bht-cpt-card--active.bht-cpt-card--super::after {
+  border-color: rgba(234,179,8,0.85);
+}
+.bht-cpt-card--active.bht-cpt-card--extreme::after {
+  border-color: rgba(220,38,38,0.9);
 }
 .bht-cpt-card--opened {
   opacity: 0.6;
