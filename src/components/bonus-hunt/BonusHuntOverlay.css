@@ -597,6 +597,35 @@
   color: #fde68a;
 }
 
+/* Corner labels on compact cards */
+.bht-cpt-card-corner {
+  font-size: 0.65em;
+  font-weight: 800;
+  padding: 1px 5px;
+  background: rgba(0,0,0,0.85);
+  color: #ffffff;
+  white-space: nowrap;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+  line-height: 1.4;
+}
+.bht-cpt-card-corner--tl {
+  border-radius: 0 0 8px 0;
+  color: #4ade80;
+}
+.bht-cpt-card-corner--tr {
+  border-radius: 0 0 0 8px;
+  color: #fbbf24;
+}
+.bht-cpt-card-corner--bl {
+  border-radius: 0 8px 0 0;
+  color: #93c5fd;
+}
+.bht-cpt-card-corner--br {
+  border-radius: 8px 0 0 0;
+  color: #ffffff;
+  font-weight: 900;
+}
+
 /* ── Opening mode: list fills middle, best slot pinned to bottom ── */
 .bht11--opening .bht11-list-section {
   flex: 1 1 0;
