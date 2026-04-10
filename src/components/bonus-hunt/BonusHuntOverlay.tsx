@@ -406,7 +406,7 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
   }, []);
 
   return (
-    <div className={`bht11${c.bonusOpening ? ' bht11--opening' : ''}`} ref={widgetContentRef} style={{ fontFamily: "'Inter', sans-serif", fontSize: '15px', width: '100%', height: '100%', overflow: 'hidden' }}>
+    <div className={`bht11${c.bonusOpening ? ' bht11--opening' : ''}`} ref={widgetContentRef} style={{ fontFamily: "'Inter', sans-serif", fontSize: '15px', width: '100%', height: '100%', overflow: 'visible' }}>
 
       {/* ═══ 1. Header ═══ */}
       <div className="bht11-header">

@@ -9,16 +9,25 @@
   flex-direction: column;
   gap: 0;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: linear-gradient(170deg, #0b1134 0%, #060a20 60%, #0a0e27 100%);
+  background: transparent;
   border-radius: 20px;
   padding: 16px 14px;
-  overflow: hidden;
+  overflow: visible;
   color: #ffffff;
   border: 1.5px solid rgba(96,165,250,0.12);
   height: 100%;
   box-sizing: border-box;
-  contain: layout style;
   position: relative;
+  z-index: 0; /* create stacking context */
+}
+/* Background rendered as pseudo so best/worst cards can sit between bg and content */
+.bht11::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(170deg, #0b1134 0%, #060a20 60%, #0a0e27 100%);
+  border-radius: 20px;
+  z-index: -2;
 }
 
 /* ── 1. Header ── */
