@@ -595,8 +595,8 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
         </div>
       )}
 
-      {/* ═══ 7. 3D Best/Worst Info Card ═══ */}
-      {(() => {
+      {/* ═══ 7. 3D Best/Worst Info Card (hidden – not fully coded) ═══ */}
+      {false && (() => {
         const openedBonuses = bonuses.filter(b => b.opened && (Number(b.payout) || 0) > 0);
         if (openedBonuses.length < 1) return null;
 
