@@ -44,6 +44,7 @@ interface Bonus {
   slotName?: string;
   slot?: { name?: string; image?: string };
   betSize?: number;
+  originalBet?: number;
   payout?: number;
   multiplier?: number | null;
   opened?: boolean;
@@ -101,7 +102,7 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
   }, [c.bonusOpening]);
 
   const stats = useMemo(() => {
-    const totalBetAll = bonuses.reduce((s, b) => s + (Number(b.betSize) || 0), 0);
+    const totalBetAll = bonuses.reduce((s, b) => s + (Number(b.originalBet) || Number(b.betSize) || 0), 0);
     const openedBonuses = bonuses.filter(b => b.opened);
     const totalWin = openedBonuses.reduce((s, b) => s + (Number(b.payout) || 0), 0);
     const superCount = bonuses.filter(b => b.isSuperBonus).length;
@@ -662,6 +663,7 @@ export function BonusHuntOverlay({ huntId, embedded = false }: BonusHuntOverlayP
       slotName: item.slot_name,
       slot: { name: item.slot_name, image: item.slot_image_url || '/image.png' },
       betSize: item.payment_amount || item.bet_amount,
+      originalBet: item.bet_amount,
       payout: item.result_amount || 0,
       multiplier: item.multiplier,
       opened: item.status === 'opened',
