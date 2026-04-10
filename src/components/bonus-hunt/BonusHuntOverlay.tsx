@@ -155,8 +155,8 @@ function BestWorstCards({ best, worst, currency }: { best: BestWorstCardData; wo
     const frontInner = anchor.querySelector<HTMLElement>('.bht-bw-face--front .bht-stack-card-inner');
     const backInner = anchor.querySelector<HTMLElement>('.bht-bw-face--back .bht-stack-card-inner');
 
-    if (frontImg) { frontImg.src = data.image; frontImg.alt = data.slotName; }
-    if (backImg) { backImg.src = data.image; backImg.alt = data.slotName; }
+    if (frontImg) { frontImg.src = data.image; frontImg.alt = data.slotName; frontImg.style.display = 'block'; }
+    if (backImg) { backImg.src = data.image; backImg.alt = data.slotName; backImg.style.display = 'block'; }
     if (backBadge) {
       backBadge.textContent = data.type === 'best' ? '★ BEST' : '▼ WORST';
       backBadge.className = `bht-bw-card-badge bht-bw-card-badge--${data.type}`;
@@ -248,19 +248,17 @@ function BestWorstCards({ best, worst, currency }: { best: BestWorstCardData; wo
           <div className="bht-bw-face bht-bw-face--front">
             <div className="bht-stack-card-inner">
               <div className="bht-stack-card-img-wrap">
-                <img src="" alt="" className="bht-stack-card-img bht-bw-img"
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                <img alt="" className="bht-stack-card-img bht-bw-img" style={{ display: 'none' }} />
               </div>
             </div>
           </div>
-          {/* Back face: slot image + stats overlay */}
+          {/* Back face: slot image (dimmed) + full stats overlay */}
           <div className="bht-bw-face bht-bw-face--back">
             <div className="bht-stack-card-inner">
               <div className="bht-stack-card-img-wrap">
-                <img src="" alt="" className="bht-stack-card-img bht-bw-img"
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                <img alt="" className="bht-stack-card-img bht-bw-img" style={{ display: 'none' }} />
               </div>
-              <div className="bht-bw-card-overlay">
+              <div className="bht-bw-card-overlay bht-bw-card-overlay--full">
                 <span className="bht-bw-card-badge bht-bw-back-badge"></span>
                 <span className="bht-bw-card-multi bht-bw-back-multi"></span>
                 <span className="bht-bw-card-name bht-bw-back-name"></span>
