@@ -136,17 +136,21 @@ function BestWorstCards({ best, worst, currency }: { best: BestWorstCardData; wo
   ) =>
     new Promise<void>((resolve, reject) => {
       if (cycleIdRef.current !== id) { reject('cancelled'); return; }
+      let finished = false;
       const anim = el.animate(keyframes, opts);
       anim.onfinish = () => {
+        finished = true;
         if (cycleIdRef.current !== id) { reject('cancelled'); return; }
         // Commit final frame to inline styles
         const last = keyframes[keyframes.length - 1];
         Object.entries(last).forEach(([k, v]) => {
           el.style.setProperty(k.replace(/([A-Z])/g, '-$1').toLowerCase(), v as string);
         });
+        // Remove fill:forwards so it doesn't override future inline style changes
+        anim.cancel();
         resolve();
       };
-      anim.oncancel = () => reject('cancelled');
+      anim.oncancel = () => { if (!finished) reject('cancelled'); };
     });
 
   /* ── Single slot sequence: slide down → pause → flip → pause → slide up ── */
