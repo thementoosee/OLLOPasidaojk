@@ -364,7 +364,7 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
             <span className="bht11-count-bar-value">{stats.extremeCount}</span>
           </div>
         </div>
-        {!isOpening && (
+        {!c.bonusOpening && (
           <div className="bht11-count-bar">
             <span className="bht11-count-bar-icon">🎁</span>
             <span className="bht11-count-bar-label">BONUSES</span>
