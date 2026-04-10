@@ -431,8 +431,9 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
                   </div>
                   <span className="bht-cpt-card-corner bht-cpt-card-corner--tl" style={{ position: 'absolute', top: 0, left: 0, zIndex: 3 }}>{currency}{payout.toFixed(2)}</span>
                   <span className="bht-cpt-card-corner bht-cpt-card-corner--tr" style={{ position: 'absolute', top: 0, right: 0, zIndex: 3 }}>{multi.toFixed(1)}x</span>
-                  <div className="bht-cpt-card-info" style={{ position: 'absolute', left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
-                    <span className="bht-cpt-card-idx" style={{ marginLeft: 8, marginRight: 0, fontWeight: 900, fontSize: '0.85em', minWidth: 28, textAlign: 'left' }}>#{idx + 1}</span>
+                  <span className="bht-cpt-card-corner bht-cpt-card-corner--bl" style={{ position: 'absolute', bottom: 0, left: 0, zIndex: 3 }}>{currency}{bet.toFixed(2)}</span>
+                  <span className="bht-cpt-card-corner bht-cpt-card-corner--br" style={{ position: 'absolute', bottom: 0, right: 0, zIndex: 3 }}>#{idx + 1}</span>
+                  <div className="bht-cpt-card-info" style={{ position: 'absolute', left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, zIndex: 2 }}>
                     <span className="bht-cpt-card-name" style={{ flex: 1, textAlign: 'center', fontWeight: 900 }}>{bonus.slotName || bonus.slot?.name}</span>
                   </div>
                 </div>
