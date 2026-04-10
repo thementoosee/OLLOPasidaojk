@@ -103,14 +103,15 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
   const stats = useMemo(() => {
     const totalBetAll = bonuses.reduce((s, b) => s + (Number(b.betSize) || 0), 0);
     const openedBonuses = bonuses.filter(b => b.opened);
-    const totalBetOpened = openedBonuses.reduce((s, b) => s + (Number(b.betSize) || 0), 0);
     const totalWin = openedBonuses.reduce((s, b) => s + (Number(b.payout) || 0), 0);
-    const totalBetRemaining = Math.max(totalBetAll - totalBetOpened, 0);
     const superCount = bonuses.filter(b => b.isSuperBonus).length;
     const extremeCount = bonuses.filter(b => b.isExtremeBonus || b.isExtreme).length;
     const target = Math.max(startMoney - stopLoss, 0);
     const breakEven = totalBetAll > 0 ? target / totalBetAll : 0;
     const remaining = Math.max(target - totalWin, 0);
+    const costPerBonus = bonuses.length > 0 ? totalBetAll / bonuses.length : 0;
+    const remainingCount = bonuses.filter(b => !b.opened).length;
+    const totalBetRemaining = remainingCount * costPerBonus;
     const liveBE = totalBetRemaining > 0 ? remaining / totalBetRemaining : 0;
     return { totalBetAll, totalWin, superCount, extremeCount, breakEven, liveBE, openedCount: openedBonuses.length };
   }, [bonuses, startMoney, stopLoss]);
