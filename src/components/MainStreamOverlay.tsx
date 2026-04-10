@@ -446,8 +446,7 @@ export function MainStreamOverlay() {
                 className="w-full h-full"
                 style={{
                   border: '2px solid rgba(59, 130, 246, 0.5)',
-                  borderRadius: '16px',
-                  backgroundColor: '#00ff00'
+                  borderRadius: '16px'
                 }}
               >
               </div>
