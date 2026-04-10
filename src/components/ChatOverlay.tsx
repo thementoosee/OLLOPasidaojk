@@ -70,7 +70,7 @@ export function ChatOverlay() {
     });
 
     const unsubEvents = onStreamEvent((evt: SEEvent) => {
-      setAlerts((prev) => [evt, ...prev].slice(0, 10));
+      setAlerts((prev) => [evt, ...prev].slice(0, 3));
     });
 
     const dataChannel = supabase
