@@ -392,10 +392,10 @@ export function ChatOverlay() {
             background: 'linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.5))'
           }}
         >
-          <div className="p-4 flex-shrink-0" style={{ height: '320px', overflow: 'hidden' }}>
+          <div className="p-4 flex-shrink-0 flex flex-col justify-end" style={{ height: '320px', overflow: 'hidden' }}>
             <div className="space-y-1.5">
               {messages.length > 0 ? (
-                messages.slice(0, 11).map((msg) => {
+                messages.slice(0, 11).reverse().map((msg) => {
                   const isWinner = giveawayWinner &&
                     msg.username.toLowerCase() === giveawayWinner.toLowerCase() &&
                     winnerSelectedAt &&
