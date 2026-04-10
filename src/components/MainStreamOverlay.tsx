@@ -354,7 +354,7 @@ export function MainStreamOverlay() {
   };
 
   return (
-    <div className="w-[1920px] h-[1080px] bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 relative overflow-hidden" style={{ margin: 0, padding: 0 }}>
+    <div className="w-[1920px] h-[1080px] relative overflow-hidden" style={{ margin: 0, padding: 0, background: 'transparent' }}>
       <style>{`
         @keyframes slideOutToLeft {
           from {
@@ -398,11 +398,7 @@ export function MainStreamOverlay() {
         }
       `}</style>
 
-      <div className="absolute inset-0 opacity-20">
-        <div className="absolute inset-0" style={{
-          backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.3) 0%, transparent 50%), radial-gradient(circle at 80% 50%, rgba(147, 51, 234, 0.3) 0%, transparent 50%)',
-        }}></div>
-      </div>
+
 
       <div className="relative z-10 h-full flex flex-col">
         {barOverlayId && (
