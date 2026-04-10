@@ -290,17 +290,21 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
       const root = bonusListRef.current;
       if (root) {
         const t = now / 1000;
-        root.querySelectorAll<HTMLElement>('.bht-cpt-card--super').forEach(card => {
-          // Pulse the card itself (scale breathe), keep static glow
+        root.querySelectorAll<HTMLElement>('.bht-cpt-card--super .bht-cpt-card-img').forEach(img => {
+          // Pulse the image only (scale breathe), keep static glow
           const p = (Math.sin(t * 2.1) + 1) / 2; // 0→1 ~3s
           const s = 1 + p * 0.025; // scale 1.0 → 1.025
-          card.style.transform = `scale(${s})`;
+          img.style.transform = `scale(${s})`;
         });
-        root.querySelectorAll<HTMLElement>('.bht-cpt-card--extreme').forEach(card => {
-          // Slower, smoother trill
+        root.querySelectorAll<HTMLElement>('.bht-cpt-card--extreme .bht-cpt-card-img').forEach(img => {
+          // Slower, smoother trill on image only
           const vx = Math.sin(t * 18) * 0.7;
           const vy = Math.cos(t * 23) * 0.5;
-          card.style.transform = `translate(${vx}px, ${vy}px)`;
+          img.style.transform = `translate(${vx}px, ${vy}px)`;
+        });
+        // Reset transform on the card itself so the box doesn't move/scale
+        root.querySelectorAll<HTMLElement>('.bht-cpt-card--super, .bht-cpt-card--extreme').forEach(card => {
+          card.style.transform = '';
         });
       }
       raf = requestAnimationFrame(animate);
