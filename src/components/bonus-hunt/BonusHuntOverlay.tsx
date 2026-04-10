@@ -730,6 +730,7 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
 
       {/* ═══ 7. Best/Worst Slot Cards ═══ */}
       {(() => {
+        if (!isOpening) return null;
         const openedBonuses = bonuses.filter(b => b.opened && (Number(b.payout) || 0) > 0);
         if (openedBonuses.length < 2) return null;
 
