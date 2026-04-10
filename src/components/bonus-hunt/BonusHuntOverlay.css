@@ -381,21 +381,31 @@
   opacity: 0.6;
 }
 .bht-cpt-card--opened.bht-cpt-card--active { opacity: 1; }
+/* Super card: yellow border + glow */
+.bht-cpt-card--super {
+  border-color: rgba(234,179,8,0.85);
+}
 .bht-cpt-card--super::after {
   content: '';
   position: absolute;
-  inset: 0;
+  inset: -2px;
   border-radius: 12px;
-  box-shadow: 0 0 0 3px rgba(234,179,8,0.7) inset, 0 0 8px 1px rgba(234,179,8,0.25);
+  border: 2px solid rgba(234,179,8,0.85);
+  box-shadow: 0 0 8px 1px rgba(234,179,8,0.25), 0 0 0 3px rgba(234,179,8,0.3) inset;
   z-index: 20;
   pointer-events: none;
+}
+/* Extreme card: red border + glow */
+.bht-cpt-card--extreme {
+  border-color: rgba(220,38,38,0.9);
 }
 .bht-cpt-card--extreme::after {
   content: '';
   position: absolute;
-  inset: 0;
+  inset: -2px;
   border-radius: 12px;
-  box-shadow: 0 0 0 3px rgba(220,38,38,0.8) inset, 0 0 10px 2px rgba(220,38,38,0.35);
+  border: 2px solid rgba(220,38,38,0.9);
+  box-shadow: 0 0 10px 2px rgba(220,38,38,0.35), 0 0 0 3px rgba(220,38,38,0.4) inset;
   z-index: 20;
   pointer-events: none;
 }
