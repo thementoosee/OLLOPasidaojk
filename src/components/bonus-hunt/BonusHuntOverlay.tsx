@@ -711,8 +711,8 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
         </div>
       </div>
 
-      {/* ═══ 6. Slide-down active card (opening mode) ═══ */}
-      {isOpening && currentBonus && (
+      {/* ═══ 6. Slide-down active card (opening mode, only after first payout) ═══ */}
+      {isOpening && currentBonus && bonuses.some(b => b.opened && (Number(b.payout) || 0) > 0) && (
         <div className="bht-slidedown-card" key={`slidedown-${currentBonus.id}`}>
           <div className="bht-stack-card-inner">
             <div className="bht-stack-card-img-wrap">
