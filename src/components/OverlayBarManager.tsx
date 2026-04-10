@@ -20,6 +20,7 @@ interface Casino {
   thumbnail_url: string;
   is_active: boolean;
   order_index: number;
+  logo_scale: number;
 }
 
 interface OverlayBarManagerProps {
@@ -103,6 +104,19 @@ export function OverlayBarManager({ showOnlyButtons = false, showOnlySelects = f
 
       if (data) {
         setOverlayId(data.id);
+
+        // Load per-casino logo_scale from active casino
+        let casinoScale = 1;
+        const { data: activeCasino } = await supabase
+          .from('casinos')
+          .select('logo_scale')
+          .eq('is_active', true)
+          .limit(1)
+          .maybeSingle();
+        if (activeCasino && typeof activeCasino.logo_scale === 'number') {
+          casinoScale = activeCasino.logo_scale;
+        }
+
         setConfig({
           nowText: data.config?.nowText || '',
           nextText: data.config?.nextText || '',
@@ -110,7 +124,7 @@ export function OverlayBarManager({ showOnlyButtons = false, showOnlySelects = f
           streamMode: data.config?.streamMode || 'raw',
           logoFit: data.config?.logoFit || 'contain',
           logoScale: typeof data.config?.logoScale === 'number' ? data.config.logoScale : 0.8,
-          casinoLogoScale: typeof data.config?.casinoLogoScale === 'number' ? data.config.casinoLogoScale : 1
+          casinoLogoScale: casinoScale
         });
       }
     } catch (error) {
@@ -417,7 +431,8 @@ export function OverlayBarManager({ showOnlyButtons = false, showOnlySelects = f
             value={config.nowText || (casinos.length > 0 ? casinos[0].name : '')}
             onChange={async (e) => {
               const selectedCasino = casinos.find(c => c.name === e.target.value);
-              const newConfig = { ...config, nowText: e.target.value };
+              const newScale = selectedCasino?.logo_scale ?? 1;
+              const newConfig = { ...config, nowText: e.target.value, casinoLogoScale: newScale };
               setConfig(newConfig);
 
               if (selectedCasino) {
@@ -527,18 +542,13 @@ export function OverlayBarManager({ showOnlyButtons = false, showOnlySelects = f
             value={config.casinoLogoScale ?? 1}
             onChange={async (e) => {
               const newScale = parseFloat(e.target.value);
-              const newConfig = { ...config, casinoLogoScale: newScale };
-              setConfig(newConfig);
+              setConfig({ ...config, casinoLogoScale: newScale });
 
-              if (overlayId) {
-                await supabase
-                  .from('overlays')
-                  .update({
-                    config: newConfig,
-                    updated_at: new Date().toISOString()
-                  })
-                  .eq('id', overlayId);
-              }
+              // Save to active casino in DB
+              await supabase
+                .from('casinos')
+                .update({ logo_scale: newScale })
+                .eq('is_active', true);
             }}
             className="w-full"
             style={{ accentColor: '#6366f1', background: '#1f1f1f' }}
@@ -596,7 +606,8 @@ export function OverlayBarManager({ showOnlyButtons = false, showOnlySelects = f
             value={config.nowText || (casinos.length > 0 ? casinos[0].name : '')}
             onChange={async (e) => {
               const selectedCasino = casinos.find(c => c.name === e.target.value);
-              const newConfig = { ...config, nowText: e.target.value };
+              const newScale = selectedCasino?.logo_scale ?? 1;
+              const newConfig = { ...config, nowText: e.target.value, casinoLogoScale: newScale };
               setConfig(newConfig);
 
               if (selectedCasino) {
@@ -703,18 +714,13 @@ export function OverlayBarManager({ showOnlyButtons = false, showOnlySelects = f
             value={config.casinoLogoScale ?? 1}
             onChange={async (e) => {
               const newScale = parseFloat(e.target.value);
-              const newConfig = { ...config, casinoLogoScale: newScale };
-              setConfig(newConfig);
+              setConfig({ ...config, casinoLogoScale: newScale });
 
-              if (overlayId) {
-                await supabase
-                  .from('overlays')
-                  .update({
-                    config: newConfig,
-                    updated_at: new Date().toISOString()
-                  })
-                  .eq('id', overlayId);
-              }
+              // Save to active casino in DB
+              await supabase
+                .from('casinos')
+                .update({ logo_scale: newScale })
+                .eq('is_active', true);
             }}
             className="w-full"
             style={{ accentColor: '#6366f1', background: '#1f1f1f' }}

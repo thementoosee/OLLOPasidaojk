@@ -87,9 +87,6 @@ export function OverlayViewer({ overlayId }: OverlayViewerProps) {
             if (typeof updated.config?.logoScale === 'number') {
               setLogoScale(updated.config.logoScale);
             }
-            if (typeof updated.config?.casinoLogoScale === 'number') {
-              setCasinoLogoScale(updated.config.casinoLogoScale);
-            }
 
             loadActiveBrandLogo(updated.config?.nowText);
           } else if (payload.eventType === 'UPDATE') {
@@ -244,9 +241,6 @@ export function OverlayViewer({ overlayId }: OverlayViewerProps) {
       }
       if (typeof data.config?.logoScale === 'number') {
         setLogoScale(data.config.logoScale);
-      }
-      if (typeof data.config?.casinoLogoScale === 'number') {
-        setCasinoLogoScale(data.config.casinoLogoScale);
       }
 
       loadActiveBrandLogo(data.config?.nowText);
