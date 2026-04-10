@@ -362,11 +362,13 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
             )}
           </div>
         )}
-        <div className="bht11-count-bar">
-          <span className="bht11-count-bar-icon">🎁</span>
-          <span className="bht11-count-bar-label">BONUSES</span>
-          <span className="bht11-count-bar-value">{bonuses.length}</span>
-        </div>
+        {!isOpening && (
+          <div className="bht11-count-bar">
+            <span className="bht11-count-bar-icon">🎁</span>
+            <span className="bht11-count-bar-label">BONUSES</span>
+            <span className="bht11-count-bar-value">{bonuses.length}</span>
+          </div>
+        )}
       </div>
 
       {/* ═══ 4. 3D Rotating Card Stack ═══ */}
