@@ -57,7 +57,12 @@ export function ChatOverlay() {
     loadTopSlots();
     loadActiveGiveawayWinner();
     setMessages([]);
-    setAlerts([]);
+
+    // Load persisted events from localStorage
+    try {
+      const saved = localStorage.getItem('se_recent_events');
+      if (saved) setAlerts(JSON.parse(saved));
+    } catch {}
 
     // ── StreamElements connection ──
     connectStreamElements();
@@ -70,7 +75,11 @@ export function ChatOverlay() {
     });
 
     const unsubEvents = onStreamEvent((evt: SEEvent) => {
-      setAlerts((prev) => [evt, ...prev].slice(0, 3));
+      setAlerts((prev) => {
+        const updated = [evt, ...prev].slice(0, 3);
+        localStorage.setItem('se_recent_events', JSON.stringify(updated));
+        return updated;
+      });
     });
 
     const dataChannel = supabase
