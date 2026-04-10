@@ -119,6 +119,28 @@ export function GiveawayOverlay() {
 
     if (!participantData || participantData.length === 0) return;
 
+    // If most participants have no profile image, fetch from Twitch API
+    const missingImages = participantData.filter(p => !p.profile_image_url || p.profile_image_url.trim() === '');
+    if (missingImages.length > participantData.length * 0.5) {
+      try {
+        const usernames = participantData.map(p => (p.user_id || p.username).toLowerCase());
+        const res = await fetch('/api/twitch-users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ usernames }),
+        });
+        if (res.ok) {
+          const { users } = await res.json();
+          for (const p of participantData) {
+            const key = (p.user_id || p.username).toLowerCase();
+            if (users[key]?.profile_image_url) {
+              p.profile_image_url = users[key].profile_image_url;
+            }
+          }
+        }
+      } catch (_) { /* continue with fallback avatars */ }
+    }
+
     setParticipants(participantData);
     setShowWinnerHighlight(false);
     setWinnerIndex(-1);
@@ -293,37 +315,28 @@ export function GiveawayOverlay() {
         }}
       >
         <div
-          className="overflow-hidden"
+          className="rounded-t-2xl overflow-hidden"
           style={{
-            background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
-            border: '2px solid rgba(234, 179, 8, 0.6)',
-            borderRadius: '16px',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5), 0 0 30px rgba(234, 179, 8, 0.3)',
+            background: 'linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%)',
+            border: '2px solid rgba(96, 165, 250, 0.3)',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
           }}
         >
-          <div className="flex flex-col items-center py-4 px-3">
-            <div className="flex items-center gap-2 mb-3">
-              <Trophy className="w-5 h-5 text-yellow-400" />
-              <span className="text-yellow-400 text-xs font-black uppercase tracking-wider">Winner</span>
-              <Trophy className="w-5 h-5 text-yellow-400" />
+          <div className="p-3">
+            <div className="flex items-center gap-2 mb-2">
+              <Trophy className="w-4 h-4 text-yellow-400 drop-shadow-lg" />
+              <p className="text-yellow-400/90 text-xs font-bold uppercase tracking-wide">Vencedor</p>
             </div>
 
-            <img
-              src={winnerAvatar}
-              alt={giveaway.winner_username}
-              className="rounded-full object-cover mb-2"
-              style={{
-                width: '72px',
-                height: '72px',
-                border: '3px solid #fbbf24',
-                boxShadow: '0 0 25px rgba(234, 179, 8, 0.5)',
-              }}
-              onError={(e) => { e.currentTarget.src = FALLBACK_AVATAR; }}
-            />
-
-            <p className="text-lg font-black text-white text-center drop-shadow-lg">
-              {giveaway.winner_username}
-            </p>
+            <div className="flex items-center gap-2">
+              <img
+                src={winnerAvatar}
+                alt={giveaway.winner_username}
+                className="w-7 h-7 rounded-full border-2 border-yellow-400/50"
+                onError={(e) => { e.currentTarget.src = FALLBACK_AVATAR; }}
+              />
+              <p className="text-sm font-black text-white drop-shadow-lg break-all flex-1">{giveaway.winner_username}</p>
+            </div>
           </div>
         </div>
       </div>
@@ -342,11 +355,10 @@ export function GiveawayOverlay() {
       }}
     >
       <div
-        className="overflow-hidden"
+        className="rounded-t-2xl overflow-hidden"
         style={{
-          background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+          background: 'linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%)',
           border: '2px solid rgba(96, 165, 250, 0.3)',
-          borderRadius: '16px',
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
         }}
       >
@@ -355,7 +367,10 @@ export function GiveawayOverlay() {
             <div className="flex items-center gap-1.5">
               <div
                 className="w-7 h-7 rounded-lg flex items-center justify-center"
-                style={{ background: 'rgba(255, 255, 255, 0.15)' }}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.15)',
+                  backdropFilter: 'blur(10px)',
+                }}
               >
                 <Gift className="w-4 h-4 text-white" />
               </div>
