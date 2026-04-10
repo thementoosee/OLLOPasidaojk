@@ -44,10 +44,10 @@ function parseColor(data: Record<string, unknown>): string {
 }
 
 export function connectStreamElements(): void {
-  const jwtToken = import.meta.env.VITE_SE_JWT_TOKEN;
+  const jwtToken = import.meta.env.VITE_SE_TOKEN;
 
   if (!jwtToken) {
-    console.warn('⚠️ StreamElements: VITE_SE_JWT_TOKEN not set — skipping connection');
+    console.warn('⚠️ StreamElements: VITE_SE_TOKEN not set — skipping connection');
     return;
   }
 
