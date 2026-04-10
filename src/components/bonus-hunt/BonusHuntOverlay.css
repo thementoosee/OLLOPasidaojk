@@ -380,15 +380,11 @@
   opacity: 0.6;
 }
 .bht-cpt-card--opened.bht-cpt-card--active { opacity: 1; }
-.bht-cpt-card--super {
-  border: 1.5px solid rgba(234,179,8,0.7);
-  box-shadow: 0 0 8px 1px rgba(234,179,8,0.25), inset 0 0 6px rgba(234,179,8,0.08);
-  position: relative;
+.bht-cpt-card--super .bht-cpt-card-img-wrap {
+  box-shadow: 0 0 0 3px rgba(234,179,8,0.7) inset, 0 0 8px 1px rgba(234,179,8,0.25);
 }
-.bht-cpt-card--extreme {
-  border: 1.5px solid rgba(220,38,38,0.8);
-  box-shadow: 0 0 10px 2px rgba(220,38,38,0.35), inset 0 0 6px rgba(220,38,38,0.1);
-  position: relative;
+.bht-cpt-card--extreme .bht-cpt-card-img-wrap {
+  box-shadow: 0 0 0 3px rgba(220,38,38,0.8) inset, 0 0 10px 2px rgba(220,38,38,0.35);
 }
 
 /* Full-bleed background image */
@@ -512,20 +508,20 @@
   font-size: 0.78em;
 }
 .bht11:not(.bht11--opening) .bht-cpt-card-bet {
-  font-weight: 800;
+  font-weight: 900;
   color: #93c5fd;
   white-space: nowrap;
   text-shadow: 0 1px 4px rgba(0,0,0,1), 0 0 8px rgba(0,0,0,0.5);
-  background: transparent;
-  padding: 0;
-  border-radius: 0;
-  font-size: 1em;
-  /* Hide "BET " label by using negative text-indent */
-  text-indent: -2.2em;
-  overflow: hidden;
+  background: rgba(6,10,32,0.82);
+  padding: 1px 10px 1px 8px;
+  border-radius: 6px;
+  font-size: 1.1em;
+  letter-spacing: 0.5px;
+  z-index: 3;
   display: inline-block;
-  width: auto;
-  max-width: 4em;
+  min-width: 2.5em;
+  max-width: 5em;
+  overflow: hidden;
 }
 .bht-cpt-card-bet {
   font-weight: 800;
