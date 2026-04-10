@@ -105,7 +105,7 @@ function BestWorstCards({ best, worst, currency }: { best: BestWorstCardData; wo
   currencyRef.current = currency;
 
   /* ── Timing constants (ms) ── */
-  const SLIDE_DUR   = 750;
+  const SLIDE_DUR   = 1200;
   const FLIP_DUR    = 800;
   const PAUSE_IMAGE = 5000;   // show image face
   const PAUSE_INFO  = 5000;   // show info face after flip
