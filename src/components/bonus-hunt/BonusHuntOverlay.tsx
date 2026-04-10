@@ -711,23 +711,6 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
         </div>
       </div>
 
-      {/* ═══ 6. Slide-down active card (opening mode, only after first payout) ═══ */}
-      {isOpening && currentBonus && bonuses.some(b => b.opened && (Number(b.payout) || 0) > 0) && (
-        <div className="bht-slidedown-card" key={`slidedown-${currentBonus.id}`}>
-          <div className="bht-stack-card-inner">
-            <div className="bht-stack-card-img-wrap">
-              {currentBonus.slot?.image ? (
-                <img src={currentBonus.slot.image} alt={currentBonus.slotName} className="bht-stack-card-img"
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-              ) : <div className="bht-stack-card-img-ph" />}
-            </div>
-            <div className="bht-slidedown-info">
-              <span className="bht-slidedown-name">{currentBonus.slotName || currentBonus.slot?.name}</span>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* ═══ 7. Best/Worst Slot Cards ═══ */}
       {(() => {
         if (!isOpening) return null;
