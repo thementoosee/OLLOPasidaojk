@@ -85,8 +85,12 @@ interface BestWorstCardData {
 }
 
 function BestWorstCards({ best, worst, currency }: { best: BestWorstCardData; worst: BestWorstCardData; currency: string }) {
-  // Cycle: hidden(4s) → slide-in(0.9s) → show-best(5s) → flip(0.8s) → show-worst(5s) → slide-out(0.8s) → repeat
-  const [phase, setPhase] = useState<'hidden' | 'slide-in' | 'show-best' | 'flipping' | 'show-worst' | 'slide-out'>('hidden');
+  // Full cycle:
+  // hidden(4s) → slide-in-best(0.9s) → show-best-image(3s) → flip-best(0.8s) → show-best-info(4s) → slide-out-best(0.8s)
+  // → pause(2s) → slide-in-worst(0.9s) → show-worst-image(3s) → flip-worst(0.8s) → show-worst-info(4s) → slide-out-worst(0.8s) → repeat
+  type Phase = 'hidden' | 'slide-in' | 'show-image' | 'flipping' | 'show-info' | 'slide-out' | 'pause';
+  const [phase, setPhase] = useState<Phase>('hidden');
+  const [showing, setShowing] = useState<'best' | 'worst'>('best');
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -94,70 +98,91 @@ function BestWorstCards({ best, worst, currency }: { best: BestWorstCardData; wo
     switch (phase) {
       case 'hidden':
         clear();
+        setShowing('best');
         timerRef.current = setTimeout(() => setPhase('slide-in'), 4000);
         break;
       case 'slide-in':
         clear();
-        timerRef.current = setTimeout(() => setPhase('show-best'), 900);
+        timerRef.current = setTimeout(() => setPhase('show-image'), 900);
         break;
-      case 'show-best':
+      case 'show-image':
         clear();
-        timerRef.current = setTimeout(() => setPhase('flipping'), 5000);
+        timerRef.current = setTimeout(() => setPhase('flipping'), 3000);
         break;
       case 'flipping':
         clear();
-        timerRef.current = setTimeout(() => setPhase('show-worst'), 800);
+        timerRef.current = setTimeout(() => setPhase('show-info'), 800);
         break;
-      case 'show-worst':
+      case 'show-info':
         clear();
-        timerRef.current = setTimeout(() => setPhase('slide-out'), 5000);
+        timerRef.current = setTimeout(() => setPhase('slide-out'), 4000);
         break;
       case 'slide-out':
         clear();
-        timerRef.current = setTimeout(() => setPhase('hidden'), 800);
+        timerRef.current = setTimeout(() => {
+          if (showing === 'best') {
+            setPhase('pause');
+          } else {
+            setPhase('hidden');
+          }
+        }, 800);
+        break;
+      case 'pause':
+        clear();
+        setShowing('worst');
+        timerRef.current = setTimeout(() => setPhase('slide-in'), 2000);
         break;
     }
     return clear;
-  }, [phase]);
+  }, [phase, showing]);
 
   useEffect(() => { setPhase('hidden'); }, []);
 
-  if (phase === 'hidden') return null;
+  if (phase === 'hidden' || phase === 'pause') return null;
+
+  const data = showing === 'best' ? best : worst;
 
   const stateClass = phase === 'slide-in' ? 'bht-bw-flipcard--entering'
     : phase === 'slide-out' ? 'bht-bw-flipcard--exiting'
     : phase === 'flipping' ? 'bht-bw-flipcard--visible bht-bw-flipcard--flipping'
     : 'bht-bw-flipcard--visible';
 
-  const renderFace = (data: BestWorstCardData, isFront: boolean) => (
-    <div className={`bht-bw-face ${isFront ? 'bht-bw-face--front' : 'bht-bw-face--back'} bht-bw-face--${data.type}`}>
-      <div className="bht-stack-card-inner">
-        <div className="bht-stack-card-img-wrap">
-          {data.image ? (
-            <img src={data.image} alt={data.slotName} className="bht-stack-card-img"
-              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-          ) : <div className="bht-stack-card-img-ph" />}
-        </div>
-        <div className="bht-bw-card-overlay">
-          <span className={`bht-bw-card-badge bht-bw-card-badge--${data.type}`}>
-            {data.type === 'best' ? '★ BEST' : '▼ WORST'}
-          </span>
-          <span className="bht-bw-card-multi">{data.multiplier.toFixed(1)}x</span>
-          <span className="bht-bw-card-name">{data.slotName}</span>
-          <span className={`bht-bw-card-profit ${data.profit >= 0 ? 'bht-bw-card-profit--pos' : 'bht-bw-card-profit--neg'}`}>
-            {data.profit >= 0 ? '+' : ''}{currency}{data.profit.toFixed(2)}
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-
   return (
     <div className="bht-bw-anchor">
       <div className={`bht-bw-flipcard ${stateClass}`}>
         <div className="bht-bw-flipper">
-          {renderFace(best, true)}
-          {renderFace(worst, false)}
+          {/* Front: just the slot image */}
+          <div className={`bht-bw-face bht-bw-face--front bht-bw-face--${data.type}`}>
+            <div className="bht-stack-card-inner">
+              <div className="bht-stack-card-img-wrap">
+                {data.image ? (
+                  <img src={data.image} alt={data.slotName} className="bht-stack-card-img"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                ) : <div className="bht-stack-card-img-ph" />}
+              </div>
+            </div>
+          </div>
+          {/* Back: slot image + info overlay */}
+          <div className={`bht-bw-face bht-bw-face--back bht-bw-face--${data.type}`}>
+            <div className="bht-stack-card-inner">
+              <div className="bht-stack-card-img-wrap">
+                {data.image ? (
+                  <img src={data.image} alt={data.slotName} className="bht-stack-card-img"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                ) : <div className="bht-stack-card-img-ph" />}
+              </div>
+              <div className="bht-bw-card-overlay">
+                <span className={`bht-bw-card-badge bht-bw-card-badge--${data.type}`}>
+                  {data.type === 'best' ? '★ BEST' : '▼ WORST'}
+                </span>
+                <span className="bht-bw-card-multi">{data.multiplier.toFixed(1)}x</span>
+                <span className="bht-bw-card-name">{data.slotName}</span>
+                <span className={`bht-bw-card-profit ${data.profit >= 0 ? 'bht-bw-card-profit--pos' : 'bht-bw-card-profit--neg'}`}>
+                  {data.profit >= 0 ? '+' : ''}{currency}{data.profit.toFixed(2)}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
