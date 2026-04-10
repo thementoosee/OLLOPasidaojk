@@ -75,6 +75,13 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
   const isOpening = !!c.bonusOpening && currentIndex >= 0;
   const huntTitle = c.bonusOpening ? 'BONUS OPENING' : 'BONUS HUNT';
 
+  /* ── Alternating Break-Even (every 15 s) ── */
+  const [showLiveBE, setShowLiveBE] = useState(false);
+  useEffect(() => {
+    const id = setInterval(() => setShowLiveBE(v => !v), 15000);
+    return () => clearInterval(id);
+  }, []);
+
   /* ── Mode transition animation (hunt ↔ opening) ── */
   const widgetContentRef = useRef<HTMLDivElement>(null);
   const prevModeRef = useRef(!!c.bonusOpening);
@@ -334,10 +341,16 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
             <span className="bht11-stat-card-value">{currency}{startMoney.toFixed(2)}</span>
           </div>
         </div>
-        <div className="bht11-stat-card">
-          <div className="bht11-stat-card-text">
-            <span className="bht11-stat-card-label">BREAKEVEN</span>
-            <span className="bht11-stat-card-value">{(c.bonusOpening ? stats.liveBE : stats.breakEven).toFixed(0)}x</span>
+        <div className="bht11-stat-card bht11-stat-card--be">
+          <div className={`bht11-be-slider ${showLiveBE ? 'bht11-be-slider--live' : ''}`}>
+            <div className="bht11-stat-card-text">
+              <span className="bht11-stat-card-label">INICIAL BE</span>
+              <span className="bht11-stat-card-value">{stats.breakEven.toFixed(1)}x</span>
+            </div>
+            <div className="bht11-stat-card-text">
+              <span className="bht11-stat-card-label">ACTUAL BE</span>
+              <span className="bht11-stat-card-value">{stats.liveBE.toFixed(1)}x</span>
+            </div>
           </div>
         </div>
       </div>
