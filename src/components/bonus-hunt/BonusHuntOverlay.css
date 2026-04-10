@@ -108,28 +108,40 @@
 .bht11-stat-card--be {
   overflow: hidden;
   position: relative;
-  height: 38px;
-  align-items: stretch;
 }
-.bht11-be-slider {
-  position: absolute;
-  inset: 0;
+.bht11-be-slide {
   display: flex;
   flex-direction: column;
-  animation: beSlide 30s ease-in-out infinite;
-}
-.bht11-be-slider > .bht11-stat-card-text {
-  flex: 0 0 100%;
+  align-items: center;
   justify-content: center;
+  position: absolute;
+  inset: 0;
 }
-@keyframes beSlide {
-  0%    { transform: translateY(0); }
-  3%    { transform: translateY(0); }      /* slide in inicial */
-  47%   { transform: translateY(0); }      /* pause on inicial */
-  50%   { transform: translateY(-50%); }   /* slide to actual */
-  53%   { transform: translateY(-50%); }   /* settle */
-  97%   { transform: translateY(-50%); }   /* pause on actual */
-  100%  { transform: translateY(0); }       /* slide back to inicial */
+.bht11-be-slide--a {
+  animation: beSlideA 30s ease-in-out infinite;
+}
+.bht11-be-slide--b {
+  animation: beSlideB 30s ease-in-out infinite;
+}
+/* A: visible first half, hidden second half */
+@keyframes beSlideA {
+  0%      { transform: translateY(0);     opacity: 1; }
+  46%     { transform: translateY(0);     opacity: 1; }
+  49%     { transform: translateY(-100%); opacity: 0; }
+  50%     { transform: translateY(100%);  opacity: 0; }
+  96%     { transform: translateY(100%);  opacity: 0; }
+  99%     { transform: translateY(0);     opacity: 1; }
+  100%    { transform: translateY(0);     opacity: 1; }
+}
+/* B: hidden first half, visible second half */
+@keyframes beSlideB {
+  0%      { transform: translateY(100%);  opacity: 0; }
+  46%     { transform: translateY(100%);  opacity: 0; }
+  49%     { transform: translateY(0);     opacity: 1; }
+  50%     { transform: translateY(0);     opacity: 1; }
+  96%     { transform: translateY(0);     opacity: 1; }
+  99%     { transform: translateY(-100%); opacity: 0; }
+  100%    { transform: translateY(100%);  opacity: 0; }
 }
 
 /* ── 3. Count Bars ── */

@@ -59,6 +59,8 @@ interface BonusHuntConfig {
   startMoney?: number;
   stopLoss?: number;
   bonusOpening?: boolean;
+  initialBE?: number;
+  liveBE?: number;
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -337,15 +339,13 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
           </div>
         </div>
         <div className="bht11-stat-card bht11-stat-card--be">
-          <div className="bht11-be-slider">
-            <div className="bht11-stat-card-text">
-              <span className="bht11-stat-card-label">INICIAL BE</span>
-              <span className="bht11-stat-card-value">{stats.breakEven.toFixed(1)}x</span>
-            </div>
-            <div className="bht11-stat-card-text">
-              <span className="bht11-stat-card-label">ACTUAL BE</span>
-              <span className="bht11-stat-card-value">{stats.liveBE.toFixed(1)}x</span>
-            </div>
+          <div className="bht11-be-slide bht11-be-slide--a">
+            <span className="bht11-stat-card-label">INICIAL BE</span>
+            <span className="bht11-stat-card-value">{(c.initialBE || 0).toFixed(1)}x</span>
+          </div>
+          <div className="bht11-be-slide bht11-be-slide--b">
+            <span className="bht11-stat-card-label">ACTUAL BE</span>
+            <span className="bht11-stat-card-value">{(c.liveBE || 0).toFixed(1)}x</span>
           </div>
         </div>
       </div>
@@ -658,6 +658,8 @@ export function BonusHuntOverlay({ huntId, embedded = false }: BonusHuntOverlayP
     stopLoss: 0,
     currency: '€',
     bonusOpening: hunt?.status === 'opening',
+    initialBE: hunt?.initial_break_even || 0,
+    liveBE: hunt?.current_break_even || 0,
     bonuses: items.map(item => ({
       id: item.id,
       slotName: item.slot_name,
