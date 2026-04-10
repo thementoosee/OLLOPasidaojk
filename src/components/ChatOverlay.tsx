@@ -246,6 +246,23 @@ export function ChatOverlay() {
     if (trimmed !== giveaway.command.toLowerCase()) return;
 
     try {
+      // Fetch Twitch profile image immediately on entry
+      let profileImageUrl = '';
+      try {
+        const res = await fetch('/api/twitch-users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ usernames: [msg.username.toLowerCase()] }),
+        });
+        if (res.ok) {
+          const { users } = await res.json();
+          const user = users[msg.username.toLowerCase()];
+          if (user?.profile_image_url) {
+            profileImageUrl = user.profile_image_url;
+          }
+        }
+      } catch (_) { /* continue with empty avatar */ }
+
       await supabase
         .from('giveaway_participants')
         .upsert(
@@ -253,7 +270,7 @@ export function ChatOverlay() {
             giveaway_id: giveaway.id,
             username: msg.display_name || msg.username,
             user_id: msg.username.toLowerCase(),
-            profile_image_url: '',
+            profile_image_url: profileImageUrl,
           },
           { onConflict: 'giveaway_id,user_id' }
         );
