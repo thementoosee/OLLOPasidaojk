@@ -543,7 +543,22 @@ export function OverlayViewer({ overlayId }: OverlayViewerProps) {
 
               <div className="w-px h-6 bg-white/20"></div>
 
-              <div className="overflow-hidden relative w-[380px]">
+              {/* Spotify Now Playing */}
+              <div className="overflow-hidden relative w-[200px] h-[30px] flex items-center rounded-md">
+                <iframe
+                  src={`https://open.spotify.com/embed/track/${(config as any)?.spotifyTrackId || '4cOdK2wGLETKBW3PvgPWqT'}?utm_source=generator&theme=0`}
+                  width="200"
+                  height="80"
+                  frameBorder="0"
+                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                  loading="lazy"
+                  style={{ border: 'none', marginTop: '-24px', pointerEvents: 'none' }}
+                ></iframe>
+              </div>
+
+              <div className="w-px h-6 bg-white/20"></div>
+
+              <div className="overflow-hidden relative w-[240px]">
                 <div
                   className="flex items-center gap-4 whitespace-nowrap"
                   style={{
