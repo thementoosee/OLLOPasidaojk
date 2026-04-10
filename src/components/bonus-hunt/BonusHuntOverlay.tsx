@@ -74,7 +74,11 @@ interface BonusHuntConfig {
 }
 
 /* ═══════════════════════════════════════════════════════
-   Best/Worst Slot Cards — slide down from behind container
+   Best/Worst Slot Cards — Premium 3D card animation system
+   ───────────────────────────────────────────────────────
+   Uses Web Animations API for GPU-accelerated, zero-rerender
+   animation sequencing. The card slides out from behind the
+   container, pauses, flips to reveal stats, then retracts.
    ═══════════════════════════════════════════════════════ */
 interface BestWorstCardData {
   type: 'best' | 'worst';
@@ -85,101 +89,182 @@ interface BestWorstCardData {
 }
 
 function BestWorstCards({ best, worst, currency }: { best: BestWorstCardData; worst: BestWorstCardData; currency: string }) {
-  // Full cycle:
-  // hidden(4s) → slide-in-best(0.9s) → show-best-image(3s) → flip-best(0.8s) → show-best-info(4s) → slide-out-best(0.8s)
-  // → pause(2s) → slide-in-worst(0.9s) → show-worst-image(3s) → flip-worst(0.8s) → show-worst-info(4s) → slide-out-worst(0.8s) → repeat
-  type Phase = 'hidden' | 'slide-in' | 'show-image' | 'flipping' | 'show-info' | 'slide-out' | 'pause';
-  const [phase, setPhase] = useState<Phase>('hidden');
-  const [showing, setShowing] = useState<'best' | 'worst'>('best');
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const anchorRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const flipperRef = useRef<HTMLDivElement>(null);
+  const runningRef = useRef(true);
+  const cycleIdRef = useRef(0);
 
-  useEffect(() => {
-    const clear = () => { if (timerRef.current) clearTimeout(timerRef.current); };
-    switch (phase) {
-      case 'hidden':
-        clear();
-        setShowing('best');
-        timerRef.current = setTimeout(() => setPhase('slide-in'), 4000);
-        break;
-      case 'slide-in':
-        clear();
-        timerRef.current = setTimeout(() => setPhase('show-image'), 900);
-        break;
-      case 'show-image':
-        clear();
-        timerRef.current = setTimeout(() => setPhase('flipping'), 3000);
-        break;
-      case 'flipping':
-        clear();
-        timerRef.current = setTimeout(() => setPhase('show-info'), 800);
-        break;
-      case 'show-info':
-        clear();
-        timerRef.current = setTimeout(() => setPhase('slide-out'), 4000);
-        break;
-      case 'slide-out':
-        clear();
-        timerRef.current = setTimeout(() => {
-          if (showing === 'best') {
-            setPhase('pause');
-          } else {
-            setPhase('hidden');
-          }
-        }, 800);
-        break;
-      case 'pause':
-        clear();
-        setShowing('worst');
-        timerRef.current = setTimeout(() => setPhase('slide-in'), 2000);
-        break;
+  /* ── Timing constants (ms) ── */
+  const SLIDE_DUR   = 750;
+  const FLIP_DUR    = 800;
+  const PAUSE_IMAGE = 5000;   // show image face
+  const PAUSE_INFO  = 2000;   // show info face after flip
+  const PAUSE_HIDDEN = 3000;  // hidden between best/worst
+  const INITIAL_DELAY = 4000; // first appearance delay
+
+  /* ── Premium easing curves ── */
+  const EASE_SLIDE_IN  = 'cubic-bezier(0.16, 1, 0.3, 1)';    // fast start, soft land
+  const EASE_SLIDE_OUT = 'cubic-bezier(0.7, 0, 0.84, 0)';     // slow start, fast exit
+  const EASE_FLIP      = 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'; // smooth mid-weight
+
+  /* ── Helper: promisified delay ── */
+  const wait = (ms: number, id: number) =>
+    new Promise<void>((resolve, reject) => {
+      setTimeout(() => {
+        if (cycleIdRef.current !== id) reject('cancelled');
+        else resolve();
+      }, ms);
+    });
+
+  /* ── Helper: run a WAAPI animation and resolve when done ── */
+  const animate = (
+    el: HTMLElement,
+    keyframes: Keyframe[],
+    opts: KeyframeAnimationOptions,
+    id: number
+  ) =>
+    new Promise<void>((resolve, reject) => {
+      if (cycleIdRef.current !== id) { reject('cancelled'); return; }
+      const anim = el.animate(keyframes, opts);
+      anim.onfinish = () => {
+        if (cycleIdRef.current !== id) { reject('cancelled'); return; }
+        // Commit final frame to inline styles
+        const last = keyframes[keyframes.length - 1];
+        Object.entries(last).forEach(([k, v]) => {
+          el.style.setProperty(k.replace(/([A-Z])/g, '-$1').toLowerCase(), v as string);
+        });
+        resolve();
+      };
+      anim.oncancel = () => reject('cancelled');
+    });
+
+  /* ── Single slot sequence: slide down → pause → flip → pause → slide up ── */
+  const playSlot = async (data: BestWorstCardData, id: number) => {
+    const card = cardRef.current!;
+    const flipper = flipperRef.current!;
+    const anchor = anchorRef.current!;
+
+    // --- Populate card faces ---
+    const frontImg = anchor.querySelector<HTMLImageElement>('.bht-bw-face--front .bht-bw-img');
+    const backImg = anchor.querySelector<HTMLImageElement>('.bht-bw-face--back .bht-bw-img');
+    const backBadge = anchor.querySelector<HTMLElement>('.bht-bw-back-badge');
+    const backMulti = anchor.querySelector<HTMLElement>('.bht-bw-back-multi');
+    const backName = anchor.querySelector<HTMLElement>('.bht-bw-back-name');
+    const backProfit = anchor.querySelector<HTMLElement>('.bht-bw-back-profit');
+    const frontInner = anchor.querySelector<HTMLElement>('.bht-bw-face--front .bht-stack-card-inner');
+    const backInner = anchor.querySelector<HTMLElement>('.bht-bw-face--back .bht-stack-card-inner');
+
+    if (frontImg) { frontImg.src = data.image; frontImg.alt = data.slotName; }
+    if (backImg) { backImg.src = data.image; backImg.alt = data.slotName; }
+    if (backBadge) {
+      backBadge.textContent = data.type === 'best' ? '★ BEST' : '▼ WORST';
+      backBadge.className = `bht-bw-card-badge bht-bw-card-badge--${data.type}`;
     }
-    return clear;
-  }, [phase, showing]);
+    if (backMulti) backMulti.textContent = `${data.multiplier.toFixed(1)}x`;
+    if (backName) backName.textContent = data.slotName;
+    if (backProfit) {
+      backProfit.textContent = `${data.profit >= 0 ? '+' : ''}${currency}${data.profit.toFixed(2)}`;
+      backProfit.className = `bht-bw-card-profit ${data.profit >= 0 ? 'bht-bw-card-profit--pos' : 'bht-bw-card-profit--neg'}`;
+    }
 
-  useEffect(() => { setPhase('hidden'); }, []);
+    // Set glow based on type
+    const glowColor = data.type === 'best' ? '74, 222, 128' : '239, 68, 68';
+    [frontInner, backInner].forEach(el => {
+      if (!el) return;
+      el.style.borderColor = `rgba(${glowColor}, 0.5)`;
+      el.style.boxShadow = `0 6px 24px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.06) inset, 0 0 14px 3px rgba(${glowColor}, 0.35), 0 0 30px 6px rgba(${glowColor}, 0.12)`;
+    });
 
-  if (phase === 'hidden' || phase === 'pause') return null;
+    // Reset flipper to 0 rotation (front face showing)
+    flipper.style.transform = 'rotateY(0deg)';
 
-  const data = showing === 'best' ? best : worst;
+    // 1. Slide card down into view
+    await animate(card, [
+      { transform: 'translateY(0%)', opacity: '0' },
+      { transform: 'translateY(15%)', opacity: '1', offset: 0.2 },
+      { transform: 'translateY(calc(100% + 10px))', opacity: '1' },
+    ], { duration: SLIDE_DUR, easing: EASE_SLIDE_IN, fill: 'forwards' }, id);
 
-  const stateClass = phase === 'slide-in' ? 'bht-bw-flipcard--entering'
-    : phase === 'slide-out' ? 'bht-bw-flipcard--exiting'
-    : phase === 'flipping' ? 'bht-bw-flipcard--visible bht-bw-flipcard--flipping'
-    : 'bht-bw-flipcard--visible';
+    // 2. Pause — show the image face
+    await wait(PAUSE_IMAGE, id);
 
+    // 3. Flip to reveal stats
+    await animate(flipper, [
+      { transform: 'rotateY(0deg)' },
+      { transform: 'rotateY(180deg)' },
+    ], { duration: FLIP_DUR, easing: EASE_FLIP, fill: 'forwards' }, id);
+
+    // 4. Pause — show the info face
+    await wait(PAUSE_INFO, id);
+
+    // 5. Slide card back up behind container
+    await animate(card, [
+      { transform: 'translateY(calc(100% + 10px))', opacity: '1' },
+      { transform: 'translateY(15%)', opacity: '1', offset: 0.8 },
+      { transform: 'translateY(0%)', opacity: '0' },
+    ], { duration: SLIDE_DUR, easing: EASE_SLIDE_OUT, fill: 'forwards' }, id);
+  };
+
+  /* ── Main animation loop ── */
+  useEffect(() => {
+    runningRef.current = true;
+    const id = ++cycleIdRef.current;
+
+    const loop = async () => {
+      try {
+        await wait(INITIAL_DELAY, id);
+
+        while (runningRef.current && cycleIdRef.current === id) {
+          // Best slot sequence
+          await playSlot(best, id);
+          await wait(PAUSE_HIDDEN, id);
+
+          // Worst slot sequence
+          await playSlot(worst, id);
+          await wait(PAUSE_HIDDEN, id);
+        }
+      } catch {
+        // cancelled — clean exit
+      }
+    };
+
+    loop();
+
+    return () => {
+      runningRef.current = false;
+      cycleIdRef.current++;
+    };
+  // Re-start loop when data changes
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [best.slotName, worst.slotName, best.multiplier, worst.multiplier]);
+
+  /* ── Static JSX — content is mutated via DOM refs, no re-renders ── */
   return (
-    <div className="bht-bw-anchor">
-      <div className={`bht-bw-flipcard ${stateClass}`}>
-        <div className="bht-bw-flipper">
-          {/* Front: just the slot image */}
-          <div className={`bht-bw-face bht-bw-face--front bht-bw-face--${data.type}`}>
+    <div className="bht-bw-anchor" ref={anchorRef}>
+      <div className="bht-bw-flipcard" ref={cardRef} style={{ transform: 'translateY(0%)', opacity: 0 }}>
+        <div className="bht-bw-flipper" ref={flipperRef}>
+          {/* Front face: slot image only */}
+          <div className="bht-bw-face bht-bw-face--front">
             <div className="bht-stack-card-inner">
               <div className="bht-stack-card-img-wrap">
-                {data.image ? (
-                  <img src={data.image} alt={data.slotName} className="bht-stack-card-img"
-                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                ) : <div className="bht-stack-card-img-ph" />}
+                <img src="" alt="" className="bht-stack-card-img bht-bw-img"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
               </div>
             </div>
           </div>
-          {/* Back: slot image + info overlay */}
-          <div className={`bht-bw-face bht-bw-face--back bht-bw-face--${data.type}`}>
+          {/* Back face: slot image + stats overlay */}
+          <div className="bht-bw-face bht-bw-face--back">
             <div className="bht-stack-card-inner">
               <div className="bht-stack-card-img-wrap">
-                {data.image ? (
-                  <img src={data.image} alt={data.slotName} className="bht-stack-card-img"
-                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                ) : <div className="bht-stack-card-img-ph" />}
+                <img src="" alt="" className="bht-stack-card-img bht-bw-img"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
               </div>
               <div className="bht-bw-card-overlay">
-                <span className={`bht-bw-card-badge bht-bw-card-badge--${data.type}`}>
-                  {data.type === 'best' ? '★ BEST' : '▼ WORST'}
-                </span>
-                <span className="bht-bw-card-multi">{data.multiplier.toFixed(1)}x</span>
-                <span className="bht-bw-card-name">{data.slotName}</span>
-                <span className={`bht-bw-card-profit ${data.profit >= 0 ? 'bht-bw-card-profit--pos' : 'bht-bw-card-profit--neg'}`}>
-                  {data.profit >= 0 ? '+' : ''}{currency}{data.profit.toFixed(2)}
-                </span>
+                <span className="bht-bw-card-badge bht-bw-back-badge"></span>
+                <span className="bht-bw-card-multi bht-bw-back-multi"></span>
+                <span className="bht-bw-card-name bht-bw-back-name"></span>
+                <span className="bht-bw-card-profit bht-bw-back-profit"></span>
               </div>
             </div>
           </div>
