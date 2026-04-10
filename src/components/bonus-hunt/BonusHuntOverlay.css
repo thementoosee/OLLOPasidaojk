@@ -365,11 +365,8 @@
 .bht-cpt-card {
   position: relative;
   flex-shrink: 0;
-  height: 82px;
-  border-radius: 12px;
-}
-.bht11:not(.bht11--opening) .bht-cpt-card {
   height: 130px;
+  border-radius: 12px;
 }
 /* Border rendered via ::after so it sits above ALL content */
 .bht-cpt-card::after {
@@ -422,21 +419,6 @@
 /* Card info overlay on top of image */
 /* Black bar at bottom, slot name centered */
 .bht-cpt-card-info {
-  position: relative;
-  z-index: 2;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  background: #060a20;
-  overflow: hidden;
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
-  border-top-left-radius: 16px 28px;
-  border-top-right-radius: 16px 28px;
-}
-.bht11:not(.bht11--opening) .bht-cpt-card-info {
   position: absolute;
   left: 0;
   right: 0;
@@ -444,25 +426,35 @@
   height: 1.8em;
   display: flex;
   align-items: center;
+  justify-content: center;
   padding: 0 10px;
   background: #060a20;
+  overflow: hidden;
   border-bottom-left-radius: 10px;
   border-bottom-right-radius: 10px;
   border-top-left-radius: 12px;
   border-top-right-radius: 12px;
   z-index: 2;
 }
-.bht11:not(.bht11--opening) .bht-cpt-card-row1,
-.bht11:not(.bht11--opening) .bht-cpt-card-row2 {
+.bht-cpt-card-row1,
+.bht-cpt-card-row2 {
   padding-left: 0;
   padding-right: 0;
 }
-.bht11:not(.bht11--opening) .bht-cpt-card-row1 {
+.bht-cpt-card-row1 {
   padding-top: 0;
   padding-left: 6px;
   padding-right: 6px;
+  padding-bottom: 0;
+  height: auto;
+  gap: 4px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
 }
-.bht11:not(.bht11--opening) .bht-cpt-card-row2 {
+.bht-cpt-card-row2 {
   position: absolute;
   top: 4px;
   left: 4px;
@@ -472,11 +464,11 @@
   font-size: 0.75em;
   z-index: 3;
 }
-.bht11:not(.bht11--opening) .bht-cpt-card-payout,
-.bht11:not(.bht11--opening) .bht-cpt-card-multi {
+.bht-cpt-card-payout,
+.bht-cpt-card-multi {
   display: none;
 }
-.bht11:not(.bht11--opening) .bht-cpt-card-name {
+.bht-cpt-card-name {
   font-size: 0.70em;
   font-weight: 900;
   color: #fff;
@@ -492,20 +484,6 @@
   text-align: left;
   margin-right: 12px;
 }
-.bht11:not(.bht11--opening) .bht-cpt-card-row1 {
-  padding-top: 0;
-  padding-bottom: 0;
-  height: auto;
-  gap: 4px;
-  line-height: 1;
-}
-.bht-cpt-card-row1 {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  gap: 8px;
-}
 .bht-cpt-card-idx {
   font-size: 0.8em;
   font-weight: 900;
@@ -520,22 +498,6 @@
   align-items: center;
   gap: 8px;
   font-size: 0.78em;
-}
-.bht11:not(.bht11--opening) .bht-cpt-card-bet {
-  font-weight: 900;
-  color: #93c5fd;
-  white-space: nowrap;
-  text-shadow: 0 1px 4px rgba(0,0,0,1), 0 0 8px rgba(0,0,0,0.5);
-  background: #060a20;
-  padding: 0 6px 0 5px;
-  border-radius: 4px;
-  font-size: 0.85em;
-  letter-spacing: 0.2px;
-  z-index: 4;
-  display: inline-block;
-  min-width: 2em;
-  max-width: 4em;
-  overflow: hidden;
 }
 .bht-cpt-card-bet {
   font-weight: 800;
@@ -580,18 +542,12 @@
   text-shadow: 0 0 6px rgba(239,68,68,0.5);
 }
 
-/* Extreme card tint — only in opening mode (full-height info bar) */
-.bht11--opening .bht-cpt-card--extreme .bht-cpt-card-info {
-  background: linear-gradient(90deg, rgba(50,8,8,0.95) 0%, rgba(50,8,8,0.78) 40%, rgba(50,8,8,0.25) 65%, transparent 100%);
-}
+/* Extreme card name color */
 .bht-cpt-card--extreme .bht-cpt-card-name {
   color: #fca5a5;
 }
 
-/* Super card tint — only in opening mode (full-height info bar) */
-.bht11--opening .bht-cpt-card--super .bht-cpt-card-info {
-  background: linear-gradient(90deg, rgba(50,35,5,0.95) 0%, rgba(50,35,5,0.78) 40%, rgba(50,35,5,0.25) 65%, transparent 100%);
-}
+/* Super card name color */
 .bht-cpt-card--super .bht-cpt-card-name {
   color: #fde68a;
 }
