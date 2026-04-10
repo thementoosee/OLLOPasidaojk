@@ -8,6 +8,7 @@ interface Casino {
   thumbnail_url: string;
   is_active: boolean;
   order_index: number;
+  logo_scale?: number;
 }
 
 export default function CasinoManager() {
@@ -16,7 +17,8 @@ export default function CasinoManager() {
   const [editingCasino, setEditingCasino] = useState<Casino | null>(null);
   const [newCasino, setNewCasino] = useState({
     name: '',
-    thumbnail_url: 'https://i.imgur.com/wVqLzwT.png'
+    thumbnail_url: 'https://i.imgur.com/wVqLzwT.png',
+    logo_scale: 1
   });
 
   useEffect(() => {
@@ -63,6 +65,7 @@ export default function CasinoManager() {
       .insert([{
         name: newCasino.name,
         thumbnail_url: newCasino.thumbnail_url,
+        logo_scale: newCasino.logo_scale,
         is_active: false,
         order_index: casinos.length
       }])
@@ -82,7 +85,8 @@ export default function CasinoManager() {
 
     setNewCasino({
       name: '',
-      thumbnail_url: 'https://i.imgur.com/wVqLzwT.png'
+      thumbnail_url: 'https://i.imgur.com/wVqLzwT.png',
+      logo_scale: 1
     });
   };
 
@@ -90,7 +94,8 @@ export default function CasinoManager() {
     setEditingCasino(casino);
     setNewCasino({
       name: casino.name,
-      thumbnail_url: casino.thumbnail_url || 'https://i.imgur.com/wVqLzwT.png'
+      thumbnail_url: casino.thumbnail_url || 'https://i.imgur.com/wVqLzwT.png',
+      logo_scale: casino.logo_scale ?? 1
     });
   };
 
@@ -105,7 +110,8 @@ export default function CasinoManager() {
       .from('casinos')
       .update({
         name: newCasino.name,
-        thumbnail_url: newCasino.thumbnail_url
+        thumbnail_url: newCasino.thumbnail_url,
+        logo_scale: newCasino.logo_scale
       })
       .eq('id', editingCasino.id)
       .select();
@@ -125,7 +131,8 @@ export default function CasinoManager() {
     setEditingCasino(null);
     setNewCasino({
       name: '',
-      thumbnail_url: 'https://i.imgur.com/wVqLzwT.png'
+      thumbnail_url: 'https://i.imgur.com/wVqLzwT.png',
+      logo_scale: 1
     });
   };
 
@@ -152,7 +159,8 @@ export default function CasinoManager() {
     setEditingCasino(null);
     setNewCasino({
       name: '',
-      thumbnail_url: 'https://i.imgur.com/wVqLzwT.png'
+      thumbnail_url: 'https://i.imgur.com/wVqLzwT.png',
+      logo_scale: 1
     });
   };
 
@@ -324,6 +332,21 @@ export default function CasinoManager() {
                   <p className="mt-2 text-xs text-gray-500">
                     Must be .png format and 1:1 aspect ratio
                   </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Logo Size on Bar — {Math.round(newCasino.logo_scale * 100)}%
+                  </label>
+                  <input
+                    type="range"
+                    min={0.5}
+                    max={3}
+                    step={0.05}
+                    value={newCasino.logo_scale}
+                    onChange={(e) => setNewCasino({ ...newCasino, logo_scale: parseFloat(e.target.value) })}
+                    className="w-full accent-blue-500"
+                  />
                 </div>
 
                 <div className="flex justify-center">

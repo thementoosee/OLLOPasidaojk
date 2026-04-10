@@ -263,25 +263,31 @@ export function OverlayViewer({ overlayId }: OverlayViewerProps) {
       if (preferredCasinoName && preferredCasinoName.trim() !== '') {
         const { data: preferredCasinos, error: preferredError } = await supabase
           .from('casinos')
-          .select('thumbnail_url, name')
+          .select('thumbnail_url, name, logo_scale')
           .eq('name', preferredCasinoName)
           .limit(1);
 
         if (!preferredError && preferredCasinos && preferredCasinos.length > 0) {
           setActiveBrandLogo(preferredCasinos[0].thumbnail_url || '');
+          if (typeof preferredCasinos[0].logo_scale === 'number') {
+            setCasinoLogoScale(preferredCasinos[0].logo_scale);
+          }
           return;
         }
       }
 
       const { data: activeCasinos, error: casinoError } = await supabase
         .from('casinos')
-        .select('thumbnail_url, order_index')
+        .select('thumbnail_url, order_index, logo_scale')
         .eq('is_active', true)
         .order('order_index', { ascending: true })
         .limit(1);
 
       if (!casinoError && activeCasinos && activeCasinos.length > 0) {
         setActiveBrandLogo(activeCasinos[0].thumbnail_url || '');
+        if (typeof activeCasinos[0].logo_scale === 'number') {
+          setCasinoLogoScale(activeCasinos[0].logo_scale);
+        }
         return;
       }
 
