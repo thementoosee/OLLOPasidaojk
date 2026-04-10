@@ -85,6 +85,7 @@ interface BestWorstCardData {
   slotName: string;
   multiplier: number;
   profit: number;
+  betSize: number;
   image: string;
 }
 
@@ -107,8 +108,9 @@ function BestWorstCards({ best, worst, currency }: { best: BestWorstCardData; wo
   const SLIDE_DUR   = 750;
   const FLIP_DUR    = 800;
   const PAUSE_IMAGE = 5000;   // show image face
-  const PAUSE_INFO  = 2000;   // show info face after flip
-  const PAUSE_HIDDEN = 3000;  // hidden between best/worst
+  const PAUSE_INFO  = 5000;   // show info face after flip
+  const PAUSE_BETWEEN = 5000; // hidden gap between best → worst
+  const PAUSE_LOOP  = 15000;  // hidden gap after worst before restarting
   const INITIAL_DELAY = 4000; // first appearance delay
 
   /* ── Premium easing curves ── */
@@ -155,34 +157,37 @@ function BestWorstCards({ best, worst, currency }: { best: BestWorstCardData; wo
 
     // --- Populate card faces ---
     const frontImg = anchor.querySelector<HTMLImageElement>('.bht-bw-face--front .bht-bw-img');
-    const backImg = anchor.querySelector<HTMLImageElement>('.bht-bw-face--back .bht-bw-img');
     const backBadge = anchor.querySelector<HTMLElement>('.bht-bw-back-badge');
-    const backMulti = anchor.querySelector<HTMLElement>('.bht-bw-back-multi');
-    const backName = anchor.querySelector<HTMLElement>('.bht-bw-back-name');
-    const backProfit = anchor.querySelector<HTMLElement>('.bht-bw-back-profit');
+    const backWinVal = anchor.querySelector<HTMLElement>('.bht-bw-back-win-val');
+    const backWinLabel = anchor.querySelector<HTMLElement>('.bht-bw-back-win-label');
+    const backMultiVal = anchor.querySelector<HTMLElement>('.bht-bw-back-multi-val');
+    const backMultiLabel = anchor.querySelector<HTMLElement>('.bht-bw-back-multi-label');
+    const backBetVal = anchor.querySelector<HTMLElement>('.bht-bw-back-bet-val');
     const frontInner = anchor.querySelector<HTMLElement>('.bht-bw-face--front .bht-stack-card-inner');
-    const backInner = anchor.querySelector<HTMLElement>('.bht-bw-face--back .bht-stack-card-inner');
+    const backInner = anchor.querySelector<HTMLElement>('.bht-bw-face--back .bht-bw-stats-panel');
 
     if (frontImg) { frontImg.src = data.image; frontImg.alt = data.slotName; frontImg.style.display = 'block'; }
-    if (backImg) { backImg.src = data.image; backImg.alt = data.slotName; backImg.style.display = 'block'; }
+    const isBest = data.type === 'best';
     if (backBadge) {
-      backBadge.textContent = data.type === 'best' ? '★ BEST' : '▼ WORST';
-      backBadge.className = `bht-bw-card-badge bht-bw-card-badge--${data.type}`;
+      backBadge.textContent = isBest ? '★ BEST SLOT' : '▼ WORST SLOT';
+      backBadge.className = `bht-bw-stats-badge bht-bw-stats-badge--${data.type}`;
     }
-    if (backMulti) backMulti.textContent = `${data.multiplier.toFixed(1)}x`;
-    if (backName) backName.textContent = data.slotName;
-    if (backProfit) {
-      backProfit.textContent = `${data.profit >= 0 ? '+' : ''}${currencyRef.current}${data.profit.toFixed(2)}`;
-      backProfit.className = `bht-bw-card-profit ${data.profit >= 0 ? 'bht-bw-card-profit--pos' : 'bht-bw-card-profit--neg'}`;
-    }
+    if (backWinVal) backWinVal.textContent = `${currencyRef.current}${Math.abs(data.profit).toFixed(2)}`;
+    if (backWinLabel) backWinLabel.textContent = isBest ? 'BEST WIN' : 'WORST WIN';
+    if (backMultiVal) backMultiVal.textContent = `${data.multiplier.toFixed(1)}x`;
+    if (backMultiLabel) backMultiLabel.textContent = isBest ? 'BEST MULTI' : 'WORST MULTI';
+    if (backBetVal) backBetVal.textContent = `${currencyRef.current}${data.betSize.toFixed(2)}`;
 
     // Set glow based on type
-    const glowColor = data.type === 'best' ? '74, 222, 128' : '239, 68, 68';
-    [frontInner, backInner].forEach(el => {
-      if (!el) return;
-      el.style.borderColor = `rgba(${glowColor}, 0.5)`;
-      el.style.boxShadow = `0 6px 24px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.06) inset, 0 0 14px 3px rgba(${glowColor}, 0.35), 0 0 30px 6px rgba(${glowColor}, 0.12)`;
-    });
+    const glowColor = isBest ? '74, 222, 128' : '239, 68, 68';
+    if (frontInner) {
+      frontInner.style.borderColor = `rgba(${glowColor}, 0.5)`;
+      frontInner.style.boxShadow = `0 6px 24px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.06) inset, 0 0 14px 3px rgba(${glowColor}, 0.35), 0 0 30px 6px rgba(${glowColor}, 0.12)`;
+    }
+    if (backInner) {
+      backInner.style.borderColor = `rgba(${glowColor}, 0.5)`;
+      backInner.style.boxShadow = `0 6px 24px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.06) inset, 0 0 14px 3px rgba(${glowColor}, 0.35), 0 0 30px 6px rgba(${glowColor}, 0.12)`;
+    }
 
     // Reset flipper to 0 rotation (front face showing)
     flipper.style.transform = 'rotateY(0deg)';
@@ -226,11 +231,15 @@ function BestWorstCards({ best, worst, currency }: { best: BestWorstCardData; wo
         while (runningRef.current && cycleIdRef.current === id) {
           // Best slot sequence — read from ref for latest data
           await playSlot(bestRef.current, id);
-          await wait(PAUSE_HIDDEN, id);
+
+          // 5s hidden — preload worst image
+          await wait(PAUSE_BETWEEN, id);
 
           // Worst slot sequence — read from ref for latest data
           await playSlot(worstRef.current, id);
-          await wait(PAUSE_HIDDEN, id);
+
+          // 15s hidden before loop restarts
+          await wait(PAUSE_LOOP, id);
         }
       } catch {
         // cancelled — clean exit
@@ -260,17 +269,30 @@ function BestWorstCards({ best, worst, currency }: { best: BestWorstCardData; wo
               </div>
             </div>
           </div>
-          {/* Back face: slot image (dimmed) + full stats overlay */}
+          {/* Back face: stats panel (no image, dark card with rows) */}
           <div className="bht-bw-face bht-bw-face--back">
-            <div className="bht-stack-card-inner">
-              <div className="bht-stack-card-img-wrap">
-                <img alt="" className="bht-stack-card-img bht-bw-img" style={{ display: 'none' }} />
+            <div className="bht-bw-stats-panel">
+              <span className="bht-bw-stats-badge bht-bw-back-badge"></span>
+              <div className="bht-bw-stats-row">
+                <span className="bht-bw-stats-icon">🏆</span>
+                <div className="bht-bw-stats-text">
+                  <span className="bht-bw-stats-value bht-bw-back-win-val"></span>
+                  <span className="bht-bw-stats-label bht-bw-back-win-label">BEST WIN</span>
+                </div>
               </div>
-              <div className="bht-bw-card-overlay bht-bw-card-overlay--full">
-                <span className="bht-bw-card-badge bht-bw-back-badge"></span>
-                <span className="bht-bw-card-multi bht-bw-back-multi"></span>
-                <span className="bht-bw-card-name bht-bw-back-name"></span>
-                <span className="bht-bw-card-profit bht-bw-back-profit"></span>
+              <div className="bht-bw-stats-row">
+                <span className="bht-bw-stats-icon">📊</span>
+                <div className="bht-bw-stats-text">
+                  <span className="bht-bw-stats-value bht-bw-back-multi-val"></span>
+                  <span className="bht-bw-stats-label bht-bw-back-multi-label">BEST MULTI</span>
+                </div>
+              </div>
+              <div className="bht-bw-stats-row">
+                <span className="bht-bw-stats-icon">💰</span>
+                <div className="bht-bw-stats-text">
+                  <span className="bht-bw-stats-value bht-bw-back-bet-val"></span>
+                  <span className="bht-bw-stats-label">BET SIZE</span>
+                </div>
               </div>
             </div>
           </div>
@@ -722,8 +744,8 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
         return (
           <BestWorstCards
             currency={currency}
-            best={{ type: 'best', slotName: best.slotName || best.slot?.name || '???', multiplier: bestMulti, profit: bestProfit, image: best.slot?.image || '' }}
-            worst={{ type: 'worst', slotName: worst.slotName || worst.slot?.name || '???', multiplier: worstMulti, profit: worstProfit, image: worst.slot?.image || '' }}
+            best={{ type: 'best', slotName: best.slotName || best.slot?.name || '???', multiplier: bestMulti, profit: bestProfit, betSize: bestBet, image: best.slot?.image || '' }}
+            worst={{ type: 'worst', slotName: worst.slotName || worst.slot?.name || '???', multiplier: worstMulti, profit: worstProfit, betSize: worstBet, image: worst.slot?.image || '' }}
           />
         );
       })()}

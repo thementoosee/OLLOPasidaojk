@@ -856,105 +856,76 @@
   height: 100%;
 }
 
-/* Stats overlay on back face — partial height (default) */
-.bht-bw-card-overlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(to top,
-    rgba(6, 10, 32, 0.96) 0%,
-    rgba(6, 10, 32, 0.82) 55%,
-    transparent 100%);
-  padding: 30px 6px 6px;
-  border-radius: 0 0 12px 12px;
+/* Stats panel (back face) — dark opaque card with stat rows */
+.bht-bw-stats-panel {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  background: linear-gradient(165deg, #1a1d2e 0%, #0d0f1a 100%);
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1px;
-}
-
-/* Full-height overlay for the dedicated stats face */
-.bht-bw-card-overlay--full {
-  top: 0;
-  background: linear-gradient(to top,
-    rgba(6, 10, 32, 0.97) 0%,
-    rgba(6, 10, 32, 0.88) 50%,
-    rgba(6, 10, 32, 0.7) 100%);
-  padding: 0 8px;
-  border-radius: 12px;
   justify-content: center;
-  gap: 4px;
+  padding: 10px 8px;
+  gap: 8px;
+  box-sizing: border-box;
 }
 
-.bht-bw-card-badge {
+/* Badge: ★ BEST SLOT / ▼ WORST SLOT */
+.bht-bw-stats-badge {
   font-size: 0.5em;
   font-weight: 900;
   letter-spacing: 2px;
   text-transform: uppercase;
   line-height: 1;
+  margin-bottom: 2px;
 }
-.bht-bw-card-badge--best {
+.bht-bw-stats-badge--best {
   color: #4ade80;
   text-shadow: 0 0 10px rgba(74, 222, 128, 0.6);
 }
-.bht-bw-card-badge--worst {
+.bht-bw-stats-badge--worst {
   color: #ef4444;
   text-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
 }
 
-.bht-bw-card-multi {
-  font-size: 0.85em;
-  font-weight: 900;
-  color: #fbbf24;
-  text-shadow: 0 0 8px rgba(251, 191, 36, 0.5);
-  line-height: 1.2;
+/* Each stat row: icon + text block */
+.bht-bw-stats-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 4px 6px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
 }
 
-.bht-bw-card-name {
-  font-size: 0.48em;
-  font-weight: 800;
-  color: rgba(255,255,255,0.9);
-  text-transform: uppercase;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-  text-align: center;
-  line-height: 1.2;
-}
-
-.bht-bw-card-profit {
-  font-size: 0.55em;
-  font-weight: 900;
+.bht-bw-stats-icon {
+  font-size: 0.8em;
+  flex-shrink: 0;
   line-height: 1;
 }
-.bht-bw-card-profit--pos {
-  color: #4ade80;
-  text-shadow: 0 0 6px rgba(74, 222, 128, 0.3);
-}
-.bht-bw-card-profit--neg {
-  color: #ef4444;
-  text-shadow: 0 0 6px rgba(239, 68, 68, 0.3);
+
+.bht-bw-stats-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
-/* ── Enlarged text for full-overlay stats face ── */
-.bht-bw-card-overlay--full .bht-bw-card-badge {
-  font-size: 0.6em;
-  letter-spacing: 2.5px;
-}
-.bht-bw-card-overlay--full .bht-bw-card-multi {
-  font-size: 1.4em;
-  line-height: 1.1;
-}
-.bht-bw-card-overlay--full .bht-bw-card-name {
-  font-size: 0.55em;
-  white-space: normal;
-  overflow: visible;
-  text-overflow: unset;
-  line-height: 1.15;
-}
-.bht-bw-card-overlay--full .bht-bw-card-profit {
+.bht-bw-stats-value {
   font-size: 0.7em;
-  margin-top: 2px;
+  font-weight: 900;
+  color: #fbbf24;
+  text-shadow: 0 0 6px rgba(251, 191, 36, 0.4);
+  line-height: 1.2;
+}
+
+.bht-bw-stats-label {
+  font-size: 0.35em;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  line-height: 1.3;
 }
