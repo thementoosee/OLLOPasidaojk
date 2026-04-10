@@ -339,6 +339,10 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
       { transform: 'translateX(-110%)', opacity: 0 },
     ], { duration: 1100, easing: 'cubic-bezier(0.4, 0, 0.6, 1)', fill: 'forwards' });
     slideOut.onfinish = () => {
+      // Commit off-screen position to inline styles, then kill the animation
+      el.style.transform = 'translateX(-110%)';
+      el.style.opacity = '0';
+      slideOut.cancel();
       // Now fully off-screen — safe to swap layout
       setVisualMode(isOpeningNow);
       setTimeout(() => {
