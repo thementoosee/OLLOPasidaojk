@@ -544,16 +544,14 @@ export function OverlayViewer({ overlayId }: OverlayViewerProps) {
               <div className="w-px h-6 bg-white/20"></div>
 
               {/* Spotify Now Playing */}
-              <div className="overflow-hidden relative w-[200px] h-[30px] flex items-center rounded-md">
-                <iframe
-                  src={`https://open.spotify.com/embed/track/${(config as any)?.spotifyTrackId || '4cOdK2wGLETKBW3PvgPWqT'}?utm_source=generator&theme=0`}
-                  width="200"
-                  height="80"
-                  frameBorder="0"
-                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                  loading="lazy"
-                  style={{ border: 'none', marginTop: '-24px', pointerEvents: 'none' }}
-                ></iframe>
+              <div className="flex items-center gap-2 min-w-[180px] max-w-[220px] overflow-hidden">
+                <div className="flex-shrink-0 w-5 h-5 rounded bg-green-500 flex items-center justify-center">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381C8.64 5.801 15.6 6.06 20.04 8.94c.6.36.78 1.021.42 1.56-.36.48-1.02.66-1.56.36z"/></svg>
+                </div>
+                <div className="flex flex-col overflow-hidden min-w-0">
+                  <span className="text-white text-[11px] font-bold whitespace-nowrap overflow-hidden text-ellipsis" style={{fontFamily: 'Rubik, sans-serif'}}>Now Playing</span>
+                  <span className="text-green-400 text-[10px] font-medium whitespace-nowrap overflow-hidden text-ellipsis" style={{fontFamily: 'Rubik, sans-serif'}}>Spotify</span>
+                </div>
               </div>
 
               <div className="w-px h-6 bg-white/20"></div>
