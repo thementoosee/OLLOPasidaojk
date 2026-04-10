@@ -368,6 +368,7 @@
   height: 82px;
   border-radius: 12px;
   border: 1px solid rgba(96,165,250,0.15);
+  overflow: hidden;
 }
 .bht11:not(.bht11--opening) .bht-cpt-card {
   height: 130px;
@@ -380,22 +381,22 @@
   opacity: 0.6;
 }
 .bht-cpt-card--opened.bht-cpt-card--active { opacity: 1; }
-.bht-cpt-card--super .bht-cpt-card-img-wrap::before {
+.bht-cpt-card--super::after {
   content: '';
   position: absolute;
   inset: 0;
   border-radius: 12px;
   box-shadow: 0 0 0 3px rgba(234,179,8,0.7) inset, 0 0 8px 1px rgba(234,179,8,0.25);
-  z-index: 11;
+  z-index: 20;
   pointer-events: none;
 }
-.bht-cpt-card--extreme .bht-cpt-card-img-wrap::before {
+.bht-cpt-card--extreme::after {
   content: '';
   position: absolute;
   inset: 0;
   border-radius: 12px;
   box-shadow: 0 0 0 3px rgba(220,38,38,0.8) inset, 0 0 10px 2px rgba(220,38,38,0.35);
-  z-index: 11;
+  z-index: 20;
   pointer-events: none;
 }
 
@@ -449,11 +450,10 @@
   align-items: center;
   padding: 0 8px;
   background: #060a20;
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
   border-top-left-radius: 16px 28px;
   border-top-right-radius: 16px 28px;
-  /* The top corners are now rounded upwards, as if the image sits above the bar */
   z-index: 2;
 }
 .bht11:not(.bht11--opening) .bht-cpt-card-row1,
@@ -583,16 +583,16 @@
   text-shadow: 0 0 6px rgba(239,68,68,0.5);
 }
 
-/* Extreme card tint */
-.bht-cpt-card--extreme .bht-cpt-card-info {
+/* Extreme card tint — only in opening mode (full-height info bar) */
+.bht11--opening .bht-cpt-card--extreme .bht-cpt-card-info {
   background: linear-gradient(90deg, rgba(50,8,8,0.95) 0%, rgba(50,8,8,0.78) 40%, rgba(50,8,8,0.25) 65%, transparent 100%);
 }
 .bht-cpt-card--extreme .bht-cpt-card-name {
   color: #fca5a5;
 }
 
-/* Super card tint */
-.bht-cpt-card--super .bht-cpt-card-info {
+/* Super card tint — only in opening mode (full-height info bar) */
+.bht11--opening .bht-cpt-card--super .bht-cpt-card-info {
   background: linear-gradient(90deg, rgba(50,35,5,0.95) 0%, rgba(50,35,5,0.78) 40%, rgba(50,35,5,0.25) 65%, transparent 100%);
 }
 .bht-cpt-card--super .bht-cpt-card-name {
