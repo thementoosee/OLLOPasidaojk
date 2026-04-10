@@ -425,7 +425,7 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
                         onError={(e) => { const t = e.target as HTMLImageElement; t.src = ''; t.style.display = 'none'; }} />
                     ) : <div className="bht-cpt-card-img-ph" />}
                   </div>
-                  <span className="bht-cpt-card-bet" style={{ position: 'absolute', top: 0, left: 0, zIndex: 3, fontSize: '0.78em', padding: '0 5px', minWidth: 'unset', maxWidth: 'unset', borderRadius: '0 0 6px 0' }}>{currency}{bet.toFixed(2)}</span>
+                  <span className="bht-cpt-card-bet" style={{ position: 'absolute', top: 2, left: 2, zIndex: 3, fontSize: '0.78em', padding: '0 5px', minWidth: 'unset', maxWidth: 'unset', borderRadius: '0 0 6px 0' }}>{currency}{bet.toFixed(2)}</span>
                   <div className="bht-cpt-card-info" style={{ position: 'absolute', left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
                     <span className="bht-cpt-card-idx" style={{ marginLeft: 8, marginRight: 0, fontWeight: 900, fontSize: '0.85em', minWidth: 28, textAlign: 'left' }}>#{idx + 1}</span>
                     <span className="bht-cpt-card-name" style={{ flex: 1, textAlign: 'center', fontWeight: 900 }}>{bonus.slotName || bonus.slot?.name}</span>
