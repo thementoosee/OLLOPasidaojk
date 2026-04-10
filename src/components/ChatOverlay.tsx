@@ -410,14 +410,14 @@ export function ChatOverlay() {
                         animation: 'pulse 2s infinite'
                       } : {}}
                     >
-                      <span className="font-bold text-[11px]" style={{ color: isWinner ? '#ffffff' : (msg.color || '#ffffff') }}>
+                      <span className="font-bold text-[14px]" style={{ color: isWinner ? '#ffffff' : (msg.color || '#ffffff') }}>
                         {msg.is_broadcaster && <span title="Broadcaster" style={{ fontSize: '10px', marginRight: '2px' }}>📺</span>}
                         {msg.is_moderator && <span title="Moderator" style={{ color: '#00ff00', fontSize: '10px', marginRight: '2px' }}>⚔️</span>}
                         {msg.is_vip && <span title="VIP" style={{ color: '#e005b9', fontSize: '10px', marginRight: '2px' }}>💎</span>}
                         {msg.is_subscriber && !msg.is_broadcaster && !msg.is_moderator && <span title="Subscriber" style={{ color: '#a855f7', fontSize: '10px', marginRight: '2px' }}>⭐</span>}
                         {msg.display_name}
                       </span>
-                      <span className="text-white/90 text-[11px] ml-1">{msg.message}</span>
+                      <span className="text-white/90 text-[14px] ml-1">{msg.message}</span>
                     </div>
                   );
                 })
