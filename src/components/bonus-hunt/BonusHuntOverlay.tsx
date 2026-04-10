@@ -95,6 +95,14 @@ function BestWorstCards({ best, worst, currency }: { best: BestWorstCardData; wo
   const runningRef = useRef(true);
   const cycleIdRef = useRef(0);
 
+  /* ── Keep latest data in refs so the loop never restarts ── */
+  const bestRef = useRef(best);
+  const worstRef = useRef(worst);
+  const currencyRef = useRef(currency);
+  bestRef.current = best;
+  worstRef.current = worst;
+  currencyRef.current = currency;
+
   /* ── Timing constants (ms) ── */
   const SLIDE_DUR   = 750;
   const FLIP_DUR    = 800;
@@ -164,7 +172,7 @@ function BestWorstCards({ best, worst, currency }: { best: BestWorstCardData; wo
     if (backMulti) backMulti.textContent = `${data.multiplier.toFixed(1)}x`;
     if (backName) backName.textContent = data.slotName;
     if (backProfit) {
-      backProfit.textContent = `${data.profit >= 0 ? '+' : ''}${currency}${data.profit.toFixed(2)}`;
+      backProfit.textContent = `${data.profit >= 0 ? '+' : ''}${currencyRef.current}${data.profit.toFixed(2)}`;
       backProfit.className = `bht-bw-card-profit ${data.profit >= 0 ? 'bht-bw-card-profit--pos' : 'bht-bw-card-profit--neg'}`;
     }
 
@@ -216,12 +224,12 @@ function BestWorstCards({ best, worst, currency }: { best: BestWorstCardData; wo
         await wait(INITIAL_DELAY, id);
 
         while (runningRef.current && cycleIdRef.current === id) {
-          // Best slot sequence
-          await playSlot(best, id);
+          // Best slot sequence — read from ref for latest data
+          await playSlot(bestRef.current, id);
           await wait(PAUSE_HIDDEN, id);
 
-          // Worst slot sequence
-          await playSlot(worst, id);
+          // Worst slot sequence — read from ref for latest data
+          await playSlot(worstRef.current, id);
           await wait(PAUSE_HIDDEN, id);
         }
       } catch {
@@ -235,9 +243,9 @@ function BestWorstCards({ best, worst, currency }: { best: BestWorstCardData; wo
       runningRef.current = false;
       cycleIdRef.current++;
     };
-  // Re-start loop when data changes
+  // Run loop once on mount — data is read from refs so it's always fresh
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [best.slotName, worst.slotName, best.multiplier, worst.multiplier]);
+  }, []);
 
   /* ── Static JSX — content is mutated via DOM refs, no re-renders ── */
   return (
