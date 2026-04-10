@@ -380,11 +380,23 @@
   opacity: 0.6;
 }
 .bht-cpt-card--opened.bht-cpt-card--active { opacity: 1; }
-.bht-cpt-card--super .bht-cpt-card-img-wrap {
+.bht-cpt-card--super .bht-cpt-card-img-wrap::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
   box-shadow: 0 0 0 3px rgba(234,179,8,0.7) inset, 0 0 8px 1px rgba(234,179,8,0.25);
+  z-index: 2;
+  pointer-events: none;
 }
-.bht-cpt-card--extreme .bht-cpt-card-img-wrap {
+.bht-cpt-card--extreme .bht-cpt-card-img-wrap::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
   box-shadow: 0 0 0 3px rgba(220,38,38,0.8) inset, 0 0 10px 2px rgba(220,38,38,0.35);
+  z-index: 2;
+  pointer-events: none;
 }
 
 /* Full-bleed background image */
@@ -513,14 +525,14 @@
   white-space: nowrap;
   text-shadow: 0 1px 4px rgba(0,0,0,1), 0 0 8px rgba(0,0,0,0.5);
   background: rgba(6,10,32,0.82);
-  padding: 1px 10px 1px 8px;
-  border-radius: 6px;
-  font-size: 1.1em;
-  letter-spacing: 0.5px;
-  z-index: 3;
+  padding: 0 6px 0 5px;
+  border-radius: 4px;
+  font-size: 0.85em;
+  letter-spacing: 0.2px;
+  z-index: 4;
   display: inline-block;
-  min-width: 2.5em;
-  max-width: 5em;
+  min-width: 2em;
+  max-width: 4em;
   overflow: hidden;
 }
 .bht-cpt-card-bet {
