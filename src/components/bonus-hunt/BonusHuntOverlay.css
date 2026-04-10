@@ -546,13 +546,14 @@
   white-space: nowrap;
   text-shadow: 0 1px 4px rgba(0,0,0,1), 0 0 8px rgba(0,0,0,0.5);
   background: #000000;
-  padding: 0 5px;
-  border-radius: 0 0 6px 0;
+  padding: 1px 6px;
+  border-radius: 0 0 8px 0;
   font-size: 0.78em;
   min-width: unset;
   max-width: unset;
   top: 0;
   left: 0;
+  line-height: 1.4;
 }
 .bht-cpt-card-payout {
   font-weight: 700;
