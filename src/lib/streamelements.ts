@@ -1,4 +1,4 @@
-import { io, Socket } from 'socket.io-client';
+import io from 'socket.io-client';
 
 const SE_SOCKET_URL = 'https://realtime.streamelements.com';
 
@@ -27,7 +27,7 @@ export interface SEEvent {
 type ChatListener = (message: SEChatMessage) => void;
 type EventListener = (event: SEEvent) => void;
 
-let socket: Socket | null = null;
+let socket: ReturnType<typeof io> | null = null;
 const chatListeners: Set<ChatListener> = new Set();
 const eventListeners: Set<EventListener> = new Set();
 let connected = false;
@@ -57,6 +57,10 @@ export function connectStreamElements(): void {
 
   socket = io(SE_SOCKET_URL, {
     transports: ['websocket'],
+    autoConnect: true,
+    reconnection: true,
+    reconnectionAttempts: 10,
+    reconnectionDelay: 5000,
   });
 
   socket.on('connect', () => {
