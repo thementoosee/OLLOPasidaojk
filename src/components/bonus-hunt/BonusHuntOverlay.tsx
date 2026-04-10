@@ -597,7 +597,7 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
           </div>
           <div className="bht11-be-slide bht11-be-slide--b">
             <span className="bht11-stat-card-label">ACTUAL BE</span>
-            <span className="bht11-stat-card-value">{(c.liveBE || 0).toFixed(1)}x</span>
+            <span className="bht11-stat-card-value">{(stats.liveBE || 0).toFixed(1)}x</span>
           </div>
         </div>
       </div>
