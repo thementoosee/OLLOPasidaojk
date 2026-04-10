@@ -369,6 +369,7 @@
 /* ── Stack section — must not shrink ── */
 .bht11-stack-section {
   flex-shrink: 0;
+  overflow: hidden;
 }
 
 /* ── 5. Bonus List Section ── */
@@ -378,6 +379,8 @@
   flex-direction: column;
   min-height: 0;
   overflow: hidden;
+  position: relative;
+  z-index: 1;
 }
 .bht11-list-section .bht-bonus-list {
   flex: 1 1 0;
@@ -794,55 +797,88 @@
 }
 
 /* ═══════════════════════════════════════════════════════
-   8. Best/Worst Slot Cards — slide down from behind container
+   8. Best/Worst Flip Card — single card slides down & flips
    ═══════════════════════════════════════════════════════ */
-.bht-bw-cards {
+.bht-bw-anchor {
   position: absolute;
   bottom: 0;
   left: 50%;
-  transform: translateX(-50%) translateY(0%);
-  display: flex;
-  gap: 10px;
+  transform: translateX(-50%);
   z-index: -1;
+  pointer-events: none;
+  perspective: 900px;
+}
+
+.bht-bw-flipcard {
+  width: 110px;
+  height: 160px;
+  position: relative;
+  transform: translateY(0%);
   opacity: 0;
   will-change: transform, opacity;
-  pointer-events: none;
+  filter: drop-shadow(0 8px 24px rgba(0,0,0,0.7));
 }
-.bht-bw-cards--entering {
+
+/* Slide states */
+.bht-bw-flipcard--entering {
   animation: bht-bw-slide-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
-.bht-bw-cards--visible {
-  transform: translateX(-50%) translateY(calc(100% + 8px));
+.bht-bw-flipcard--visible {
+  transform: translateY(calc(100% + 8px));
   opacity: 1;
 }
-.bht-bw-cards--exiting {
+.bht-bw-flipcard--flipping .bht-bw-flipper {
+  animation: bht-bw-flip 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+.bht-bw-flipcard--exiting {
   animation: bht-bw-slide-out 0.8s cubic-bezier(0.55, 0, 1, 0.45) forwards;
 }
 
 @keyframes bht-bw-slide-in {
-  0%   { transform: translateX(-50%) translateY(0%); opacity: 0; }
-  30%  { opacity: 1; }
-  100% { transform: translateX(-50%) translateY(calc(100% + 8px)); opacity: 1; }
+  0%   { transform: translateY(0%); opacity: 0; }
+  25%  { opacity: 1; }
+  100% { transform: translateY(calc(100% + 8px)); opacity: 1; }
 }
 @keyframes bht-bw-slide-out {
-  0%   { transform: translateX(-50%) translateY(calc(100% + 8px)); opacity: 1; }
-  70%  { opacity: 1; }
-  100% { transform: translateX(-50%) translateY(0%); opacity: 0; }
+  0%   { transform: translateY(calc(100% + 8px)); opacity: 1; }
+  75%  { opacity: 1; }
+  100% { transform: translateY(0%); opacity: 0; }
+}
+@keyframes bht-bw-flip {
+  0%   { transform: rotateY(0deg); }
+  100% { transform: rotateY(180deg); }
 }
 
-.bht-bw-card {
-  width: 110px;
-  height: 160px;
+/* 3D flip container */
+.bht-bw-flipper {
   position: relative;
-  filter: drop-shadow(0 8px 24px rgba(0,0,0,0.7));
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  will-change: transform;
 }
-.bht-bw-card .bht-stack-card-inner {
+
+/* Each face of the card */
+.bht-bw-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.bht-bw-face--front {
+  z-index: 1;
+}
+.bht-bw-face--back {
+  transform: rotateY(180deg);
+}
+
+.bht-bw-face .bht-stack-card-inner {
   width: 100%;
   height: 100%;
 }
 
-/* Best card green glow */
-.bht-bw-card--best .bht-stack-card-inner {
+/* Best face green glow */
+.bht-bw-face--best .bht-stack-card-inner {
   border-color: rgba(74, 222, 128, 0.5);
   box-shadow:
     0 6px 24px rgba(0,0,0,0.6),
@@ -850,8 +886,8 @@
     0 0 14px 3px rgba(74, 222, 128, 0.3),
     0 0 30px 6px rgba(74, 222, 128, 0.1);
 }
-/* Worst card red glow */
-.bht-bw-card--worst .bht-stack-card-inner {
+/* Worst face red glow */
+.bht-bw-face--worst .bht-stack-card-inner {
   border-color: rgba(239, 68, 68, 0.5);
   box-shadow:
     0 6px 24px rgba(0,0,0,0.6),
@@ -860,7 +896,7 @@
     0 0 30px 6px rgba(239, 68, 68, 0.1);
 }
 
-/* Info overlay on card */
+/* Info overlay on card face */
 .bht-bw-card-overlay {
   position: absolute;
   bottom: 0;

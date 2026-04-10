@@ -85,8 +85,8 @@ interface BestWorstCardData {
 }
 
 function BestWorstCards({ best, worst, currency }: { best: BestWorstCardData; worst: BestWorstCardData; currency: string }) {
-  // Cycle: hidden → slide-in → visible → slide-out → hidden (pause) → repeat
-  const [phase, setPhase] = useState<'hidden' | 'slide-in' | 'visible' | 'slide-out'>('hidden');
+  // Cycle: hidden(4s) → slide-in(0.9s) → show-best(5s) → flip(0.8s) → show-worst(5s) → slide-out(0.8s) → repeat
+  const [phase, setPhase] = useState<'hidden' | 'slide-in' | 'show-best' | 'flipping' | 'show-worst' | 'slide-out'>('hidden');
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -98,11 +98,19 @@ function BestWorstCards({ best, worst, currency }: { best: BestWorstCardData; wo
         break;
       case 'slide-in':
         clear();
-        timerRef.current = setTimeout(() => setPhase('visible'), 900);
+        timerRef.current = setTimeout(() => setPhase('show-best'), 900);
         break;
-      case 'visible':
+      case 'show-best':
         clear();
-        timerRef.current = setTimeout(() => setPhase('slide-out'), 6000);
+        timerRef.current = setTimeout(() => setPhase('flipping'), 5000);
+        break;
+      case 'flipping':
+        clear();
+        timerRef.current = setTimeout(() => setPhase('show-worst'), 800);
+        break;
+      case 'show-worst':
+        clear();
+        timerRef.current = setTimeout(() => setPhase('slide-out'), 5000);
         break;
       case 'slide-out':
         clear();
@@ -116,12 +124,13 @@ function BestWorstCards({ best, worst, currency }: { best: BestWorstCardData; wo
 
   if (phase === 'hidden') return null;
 
-  const stateClass = phase === 'slide-in' ? 'bht-bw-cards--entering'
-    : phase === 'slide-out' ? 'bht-bw-cards--exiting'
-    : 'bht-bw-cards--visible';
+  const stateClass = phase === 'slide-in' ? 'bht-bw-flipcard--entering'
+    : phase === 'slide-out' ? 'bht-bw-flipcard--exiting'
+    : phase === 'flipping' ? 'bht-bw-flipcard--visible bht-bw-flipcard--flipping'
+    : 'bht-bw-flipcard--visible';
 
-  const renderCard = (data: BestWorstCardData) => (
-    <div className={`bht-bw-card bht-bw-card--${data.type}`}>
+  const renderFace = (data: BestWorstCardData, isFront: boolean) => (
+    <div className={`bht-bw-face ${isFront ? 'bht-bw-face--front' : 'bht-bw-face--back'} bht-bw-face--${data.type}`}>
       <div className="bht-stack-card-inner">
         <div className="bht-stack-card-img-wrap">
           {data.image ? (
@@ -144,9 +153,13 @@ function BestWorstCards({ best, worst, currency }: { best: BestWorstCardData; wo
   );
 
   return (
-    <div className={`bht-bw-cards ${stateClass}`}>
-      {renderCard(best)}
-      {renderCard(worst)}
+    <div className="bht-bw-anchor">
+      <div className={`bht-bw-flipcard ${stateClass}`}>
+        <div className="bht-bw-flipper">
+          {renderFace(best, true)}
+          {renderFace(worst, false)}
+        </div>
+      </div>
     </div>
   );
 }
