@@ -173,11 +173,44 @@ export function GiveawayManager() {
     alert('Sorteio terminado! Agora podes sortear o vencedor.');
   };
 
+  const fetchAndUpdateProfileImages = async (giveawayId: string) => {
+    try {
+      const usernames = participants.map(p => p.user_id || p.username.toLowerCase());
+      const res = await fetch('/api/twitch-users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ usernames }),
+      });
+      if (!res.ok) return;
+      const { users } = await res.json();
+
+      // Update each participant's profile image in DB
+      for (const p of participants) {
+        const key = (p.user_id || p.username).toLowerCase();
+        const twitchUser = users[key];
+        if (twitchUser?.profile_image_url) {
+          await supabase
+            .from('giveaway_participants')
+            .update({ profile_image_url: twitchUser.profile_image_url })
+            .eq('id', p.id);
+        }
+      }
+
+      // Reload participants so local state has the images
+      await loadParticipants(giveawayId);
+    } catch (err) {
+      console.error('Failed to fetch Twitch profile images:', err);
+    }
+  };
+
   const drawWinner = async () => {
     if (!selectedGiveaway || participants.length === 0) {
       alert('Não há participantes para sortear');
       return;
     }
+
+    // Fetch Twitch profile images before drawing
+    await fetchAndUpdateProfileImages(selectedGiveaway.id);
 
     // Set status to drawing to trigger overlay animation
     await supabase
@@ -187,8 +220,15 @@ export function GiveawayManager() {
 
     // Wait for overlay to finish rolling (5 seconds)
     setTimeout(async () => {
-      const finalIndex = Math.floor(Math.random() * participants.length);
-      const winner = participants[finalIndex];
+      // Re-read participants to get updated images
+      const { data: freshParticipants } = await supabase
+        .from('giveaway_participants')
+        .select('*')
+        .eq('giveaway_id', selectedGiveaway.id);
+
+      const pool = freshParticipants || participants;
+      const finalIndex = Math.floor(Math.random() * pool.length);
+      const winner = pool[finalIndex];
 
       // Update to completed with winner
       await supabase
@@ -219,8 +259,14 @@ export function GiveawayManager() {
 
     // Wait for overlay to finish rolling (5 seconds)
     setTimeout(async () => {
-      const finalIndex = Math.floor(Math.random() * participants.length);
-      const winner = participants[finalIndex];
+      const { data: freshParticipants } = await supabase
+        .from('giveaway_participants')
+        .select('*')
+        .eq('giveaway_id', selectedGiveaway.id);
+
+      const pool = freshParticipants || participants;
+      const finalIndex = Math.floor(Math.random() * pool.length);
+      const winner = pool[finalIndex];
 
       // Update to completed with new winner
       await supabase
