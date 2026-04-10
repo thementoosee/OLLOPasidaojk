@@ -354,7 +354,27 @@ export function MainStreamOverlay() {
   };
 
   return (
-    <div className="w-[1920px] h-[1080px] relative overflow-hidden" style={{ margin: 0, padding: 0, background: 'transparent' }}>
+    <div className="w-[1920px] h-[1080px] relative overflow-hidden" style={{ margin: 0, padding: 0 }}>
+      {/* Background with transparent cutout for center box */}
+      <svg className="absolute inset-0 w-full h-full" style={{ zIndex: 0 }}>
+        <defs>
+          <mask id="center-cutout">
+            {/* White = visible background */}
+            <rect width="100%" height="100%" fill="white" />
+            {/* Black = transparent hole: matches center box position */}
+            {/* left panel 350px + 20px padding + 8px gap = 378px, right same, top bar ~60px + 10px pt = 70px, bottom 20px pb */}
+            <rect x="378" y="60" width="1164" height="720" rx="16" ry="16" fill="black" />
+          </mask>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#bg-gradient)" mask="url(#center-cutout)" />
+        <defs>
+          <linearGradient id="bg-gradient" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#111827" />
+            <stop offset="50%" stopColor="#1e3a5f" />
+            <stop offset="100%" stopColor="#111827" />
+          </linearGradient>
+        </defs>
+      </svg>
       <style>{`
         @keyframes slideOutToLeft {
           from {
@@ -398,7 +418,11 @@ export function MainStreamOverlay() {
         }
       `}</style>
 
-
+      <div className="absolute inset-0 opacity-20">
+        <div className="absolute inset-0" style={{
+          backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.3) 0%, transparent 50%), radial-gradient(circle at 80% 50%, rgba(147, 51, 234, 0.3) 0%, transparent 50%)',
+        }}></div>
+      </div>
 
       <div className="relative z-10 h-full flex flex-col">
         {barOverlayId && (
