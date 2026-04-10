@@ -174,7 +174,7 @@ function BestWorstCards({ best, worst, currency }: { best: BestWorstCardData; wo
     const isBest = data.type === 'best';
     if (backBadge) {
       backBadge.textContent = isBest ? '★ BEST SLOT' : '▼ WORST SLOT';
-      backBadge.className = `bht-bw-stats-badge bht-bw-stats-badge--${data.type}`;
+      backBadge.className = `bht-bw-stats-badge bht-bw-back-badge bht-bw-stats-badge--${data.type}`;
     }
     if (backWinVal) backWinVal.textContent = `${currencyRef.current}${data.payout.toFixed(2)}`;
     if (backWinLabel) backWinLabel.textContent = isBest ? 'BEST WIN' : 'WORST WIN';
