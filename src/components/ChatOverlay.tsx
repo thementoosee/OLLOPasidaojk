@@ -58,11 +58,26 @@ export function ChatOverlay() {
     loadActiveGiveawayWinner();
     setMessages([]);
 
-    // Load persisted events from localStorage
-    try {
-      const saved = localStorage.getItem('se_recent_events');
-      if (saved) setAlerts(JSON.parse(saved));
-    } catch {}
+    // Load last 3 events from DB
+    const loadRecentEvents = async () => {
+      const { data } = await supabase
+        .from('stream_events')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(3);
+      if (data && data.length > 0) {
+        setAlerts(data.map((e: any) => ({
+          id: e.id,
+          event_type: e.event_type,
+          username: e.username,
+          display_name: e.display_name,
+          amount: e.amount || 0,
+          months: e.months || 0,
+          created_at: e.created_at,
+        })));
+      }
+    };
+    loadRecentEvents();
 
     // ── StreamElements connection ──
     connectStreamElements();
@@ -75,11 +90,30 @@ export function ChatOverlay() {
     });
 
     const unsubEvents = onStreamEvent((evt: SEEvent) => {
-      setAlerts((prev) => {
-        const updated = [evt, ...prev].slice(0, 3);
-        localStorage.setItem('se_recent_events', JSON.stringify(updated));
-        return updated;
+      // Save to DB
+      supabase.from('stream_events').insert({
+        event_type: evt.event_type,
+        username: evt.username,
+        display_name: evt.display_name,
+        amount: evt.amount,
+        months: evt.months,
+      }).then(() => {
+        // Clean up old events, keep only last 20
+        supabase.from('stream_events')
+          .select('id')
+          .order('created_at', { ascending: false })
+          .range(20, 1000)
+          .then(({ data: old }) => {
+            if (old && old.length > 0) {
+              supabase.from('stream_events')
+                .delete()
+                .in('id', old.map((e: any) => e.id))
+                .then(() => {});
+            }
+          });
       });
+
+      setAlerts((prev) => [evt, ...prev].slice(0, 3));
     });
 
     const dataChannel = supabase
