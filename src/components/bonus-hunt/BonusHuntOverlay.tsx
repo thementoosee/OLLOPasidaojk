@@ -352,24 +352,16 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
 
       {/* ═══ 3. Counts ═══ */}
       <div className="bht11-counts-col">
-        {(stats.superCount > 0 || stats.extremeCount > 0) && (
-          <div className="bht11-count-bar-row">
-            {stats.superCount > 0 && (
-              <div className="bht11-count-bar bht11-count-bar--super">
-                <span className="bht11-count-bar-icon">⚡</span>
-                <span className="bht11-count-bar-label">SUPER</span>
-                <span className="bht11-count-bar-value">{stats.superCount}</span>
-              </div>
-            )}
-            {stats.extremeCount > 0 && (
-              <div className="bht11-count-bar bht11-count-bar--extreme">
-                <span className="bht11-count-bar-icon">🔥</span>
-                <span className="bht11-count-bar-label">EXTREME</span>
-                <span className="bht11-count-bar-value">{stats.extremeCount}</span>
-              </div>
-            )}
-          </div>
-        )}
+        <div className="bht11-count-bar bht11-count-bar--super">
+          <span className="bht11-count-bar-icon">⚡</span>
+          <span className="bht11-count-bar-label">SUPER</span>
+          <span className="bht11-count-bar-value">{stats.superCount}</span>
+        </div>
+        <div className="bht11-count-bar bht11-count-bar--extreme">
+          <span className="bht11-count-bar-icon">🔥</span>
+          <span className="bht11-count-bar-label">EXTREME</span>
+          <span className="bht11-count-bar-value">{stats.extremeCount}</span>
+        </div>
         <div className="bht11-count-bar">
           <span className="bht11-count-bar-icon">🎁</span>
           <span className="bht11-count-bar-label">BONUSES</span>
