@@ -1,13 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { UserPlus, Swords, Star, Zap, DollarSign } from 'lucide-react';
 import { GiveawayOverlay } from './GiveawayOverlay';
+import tmi from 'tmi.js';
 import {
   connectStreamElements,
   disconnectStreamElements,
-  onChatMessage,
   onStreamEvent,
-  type SEChatMessage,
   type SEEvent,
 } from '../lib/streamelements';
 
@@ -52,6 +51,8 @@ export function ChatOverlay() {
   const [topSlots, setTopSlots] = useState<TopSlot[]>([]);
   const [currentSlotIndex, setCurrentSlotIndex] = useState(0);
 
+  const tmiClientRef = useRef<tmi.Client | null>(null);
+
   useEffect(() => {
     console.log('🚀 ChatOverlay: Initializing...');
     loadTopSlots();
@@ -79,15 +80,39 @@ export function ChatOverlay() {
     };
     loadRecentEvents();
 
-    // ── StreamElements connection ──
-    connectStreamElements();
+    // ── Twitch Chat via tmi.js ──
+    const TWITCH_CHANNEL = 'oficialfever';
+    const tmiClient = new tmi.Client({
+      connection: { secure: true, reconnect: true },
+      channels: [TWITCH_CHANNEL],
+    });
 
-    const unsubChat = onChatMessage((msg: SEChatMessage) => {
+    tmiClient.connect().then(() => {
+      console.log('🟢 Twitch Chat: Connected to #' + TWITCH_CHANNEL);
+    }).catch((err: unknown) => {
+      console.error('❌ Twitch Chat: Connection failed', err);
+    });
+
+    tmiClient.on('message', (_channel: string, tags: tmi.ChatUserstate, message: string, self: boolean) => {
+      if (self) return;
+      const msg: ChatMessage = {
+        id: tags.id || `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+        username: tags.username || '',
+        display_name: tags['display-name'] || tags.username || '',
+        message,
+        color: tags.color || '#ffffff',
+        is_subscriber: Boolean(tags.subscriber),
+        is_moderator: Boolean(tags.mod),
+        created_at: new Date().toISOString(),
+      };
       setMessages((prev) => [msg, ...prev].slice(0, 50));
-
-      // Auto-join giveaway if message matches active command
       handleGiveawayCommand(msg);
     });
+
+    tmiClientRef.current = tmiClient;
+
+    // ── StreamElements connection (events only) ──
+    connectStreamElements();
 
     const unsubEvents = onStreamEvent((evt: SEEvent) => {
       // Save to DB
@@ -149,7 +174,9 @@ export function ChatOverlay() {
 
     return () => {
       console.log('🔌 ChatOverlay: Cleaning up subscriptions...');
-      unsubChat();
+      if (tmiClientRef.current) {
+        tmiClientRef.current.disconnect();
+      }
       unsubEvents();
       disconnectStreamElements();
       supabase.removeChannel(dataChannel);
@@ -205,7 +232,7 @@ export function ChatOverlay() {
     }
   };
 
-  const handleGiveawayCommand = async (msg: SEChatMessage) => {
+  const handleGiveawayCommand = async (msg: ChatMessage) => {
     const giveaway = activeGiveawayRef.current;
     if (!giveaway) return;
 
