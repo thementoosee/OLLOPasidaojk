@@ -318,8 +318,11 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
 
   const currentBonus = bonuses.find(b => !b.opened);
   const currentIndex = currentBonus ? bonuses.indexOf(currentBonus) : -1;
-  const isOpening = !!c.bonusOpening && currentIndex >= 0;
-  const huntTitle = c.bonusOpening ? 'BONUS OPENING' : 'BONUS HUNT';
+
+  /* ── Deferred visual mode: only swaps while widget is off-screen ── */
+  const [visualMode, setVisualMode] = useState(!!c.bonusOpening);
+  const isOpening = visualMode && currentIndex >= 0;
+  const huntTitle = visualMode ? 'BONUS OPENING' : 'BONUS HUNT';
 
   /* ── Mode transition animation (hunt ↔ opening) ── */
   const widgetContentRef = useRef<HTMLDivElement>(null);
@@ -330,20 +333,22 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
     prevModeRef.current = isOpeningNow;
     const el = widgetContentRef.current;
     if (!el) return;
-    // Slow slide out to the left until fully gone
-    el.animate([
+    // Slide out — keep old layout visible during exit
+    const slideOut = el.animate([
       { transform: 'translateX(0)', opacity: 1 },
       { transform: 'translateX(-110%)', opacity: 0 },
-    ], { duration: 1100, easing: 'cubic-bezier(0.4, 0, 0.6, 1)', fill: 'forwards' })
-      .onfinish = () => {
-        // Pause, then slowly slide in from the left to center
-        setTimeout(() => {
-          el.animate([
-            { transform: 'translateX(-110%)', opacity: 0 },
-            { transform: 'translateX(0)', opacity: 1 },
-          ], { duration: 1800, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'forwards' });
-        }, 800);
-      };
+    ], { duration: 1100, easing: 'cubic-bezier(0.4, 0, 0.6, 1)', fill: 'forwards' });
+    slideOut.onfinish = () => {
+      // Now fully off-screen — safe to swap layout
+      setVisualMode(isOpeningNow);
+      setTimeout(() => {
+        const slideIn = el.animate([
+          { transform: 'translateX(-110%)', opacity: 0 },
+          { transform: 'translateX(0)', opacity: 1 },
+        ], { duration: 1800, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'forwards' });
+        slideIn.onfinish = () => { slideIn.cancel(); el.style.transform = ''; el.style.opacity = ''; };
+      }, 200);
+    };
   }, [c.bonusOpening]);
 
   const stats = useMemo(() => {
@@ -561,7 +566,7 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
   }, []);
 
   return (
-    <div className={`bht11${c.bonusOpening ? ' bht11--opening' : ''}`} ref={widgetContentRef} style={{ fontFamily: "'Inter', sans-serif", fontSize: '15px', width: '100%', height: '100%', overflow: 'visible' }}>
+    <div className={`bht11${visualMode ? ' bht11--opening' : ''}`} ref={widgetContentRef} style={{ fontFamily: "'Inter', sans-serif", fontSize: '15px', width: '100%', height: '100%', overflow: 'visible' }}>
 
       {/* ═══ 1. Header ═══ */}
       <div className="bht11-header">
