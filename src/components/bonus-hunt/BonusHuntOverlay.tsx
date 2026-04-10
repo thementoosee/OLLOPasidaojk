@@ -84,7 +84,7 @@ interface BestWorstCardData {
   type: 'best' | 'worst';
   slotName: string;
   multiplier: number;
-  profit: number;
+  payout: number;
   betSize: number;
   image: string;
 }
@@ -176,7 +176,7 @@ function BestWorstCards({ best, worst, currency }: { best: BestWorstCardData; wo
       backBadge.textContent = isBest ? '★ BEST SLOT' : '▼ WORST SLOT';
       backBadge.className = `bht-bw-stats-badge bht-bw-stats-badge--${data.type}`;
     }
-    if (backWinVal) backWinVal.textContent = `${currencyRef.current}${Math.abs(data.profit).toFixed(2)}`;
+    if (backWinVal) backWinVal.textContent = `${currencyRef.current}${data.payout.toFixed(2)}`;
     if (backWinLabel) backWinLabel.textContent = isBest ? 'BEST WIN' : 'WORST WIN';
     if (backMultiVal) backMultiVal.textContent = `${data.multiplier.toFixed(1)}x`;
     if (backMultiLabel) backMultiLabel.textContent = isBest ? 'BEST MULTI' : 'WORST MULTI';
@@ -738,18 +738,16 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
         const bestBet = Number(best.originalBet) || Number(best.betSize) || 0;
         const bestPayout = Number(best.payout) || 0;
         const bestMulti = best.multiplier ?? (bestBet > 0 ? bestPayout / bestBet : 0);
-        const bestProfit = bestPayout - bestBet;
 
         const worstBet = Number(worst.originalBet) || Number(worst.betSize) || 0;
         const worstPayout = Number(worst.payout) || 0;
         const worstMulti = worst.multiplier ?? (worstBet > 0 ? worstPayout / worstBet : 0);
-        const worstProfit = worstPayout - worstBet;
 
         return (
           <BestWorstCards
             currency={currency}
-            best={{ type: 'best', slotName: best.slotName || best.slot?.name || '???', multiplier: bestMulti, profit: bestProfit, betSize: bestBet, image: best.slot?.image || '' }}
-            worst={{ type: 'worst', slotName: worst.slotName || worst.slot?.name || '???', multiplier: worstMulti, profit: worstProfit, betSize: worstBet, image: worst.slot?.image || '' }}
+            best={{ type: 'best', slotName: best.slotName || best.slot?.name || '???', multiplier: bestMulti, payout: bestPayout, betSize: bestBet, image: best.slot?.image || '' }}
+            worst={{ type: 'worst', slotName: worst.slotName || worst.slot?.name || '???', multiplier: worstMulti, payout: worstPayout, betSize: worstBet, image: worst.slot?.image || '' }}
           />
         );
       })()}
