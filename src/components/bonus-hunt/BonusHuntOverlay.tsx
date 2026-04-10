@@ -1,5 +1,6 @@
 import React, { useMemo, useEffect, useLayoutEffect, useRef, useState, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
+import { calculateBE, calculateLiveBE, calculateTotalBetAll } from '../../lib/breakEvenCalculations';
 import './BonusHuntOverlay.css';
 
 /* ═══════════════════════════════════════════════════════
@@ -597,7 +598,7 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
           </div>
           <div className="bht11-be-slide bht11-be-slide--b">
             <span className="bht11-stat-card-label">ACTUAL BE</span>
-            <span className="bht11-stat-card-value">{(stats.liveBE || 0).toFixed(1)}x</span>
+            <span className="bht11-stat-card-value">{(c.liveBE || 0).toFixed(1)}x</span>
           </div>
         </div>
       </div>
@@ -901,8 +902,8 @@ export function BonusHuntOverlay({ huntId, embedded = false }: BonusHuntOverlayP
     stopLoss: 0,
     currency: '€',
     bonusOpening: hunt?.status === 'opening',
-    initialBE: hunt?.initial_break_even || 0,
-    liveBE: hunt?.current_break_even || 0,
+    initialBE: calculateBE(hunt?.total_invested || 0, calculateTotalBetAll(items)),
+    liveBE: calculateLiveBE(items, hunt?.total_invested || 0),
     bonuses: items.map(item => ({
       id: item.id,
       slotName: item.slot_name,
