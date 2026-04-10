@@ -414,7 +414,7 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
           {(() => {
             const renderCompactCard = (bonus: Bonus, idx: number, key: string | number) => {
               const payout = Number(bonus.payout) || 0;
-              const bet = Number(bonus.betSize) || 0;
+              const bet = Number(bonus.originalBet) || Number(bonus.betSize) || 0;
               const multi = bonus.multiplier != null ? bonus.multiplier : (bet > 0 ? payout / bet : 0);
               const isExtreme = bonus.isExtremeBonus || bonus.isExtreme;
               const isSuper = bonus.isSuperBonus;
