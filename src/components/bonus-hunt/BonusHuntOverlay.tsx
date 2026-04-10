@@ -63,6 +63,125 @@ interface BonusHuntConfig {
   liveBE?: number;
 }
 
+interface BonusHuntConfig {
+  bonuses?: Bonus[];
+  currency?: string;
+  startMoney?: number;
+  stopLoss?: number;
+  bonusOpening?: boolean;
+  initialBE?: number;
+  liveBE?: number;
+}
+
+/* ═══════════════════════════════════════════════════════
+   3D Best/Worst Info Card Component
+   ═══════════════════════════════════════════════════════ */
+interface InfoCardData {
+  type: 'best' | 'worst';
+  slotName: string;
+  multiplier: number;
+  profit: number;
+  image: string;
+}
+
+function InfoCard3D({ best, worst, currency }: { best: InfoCardData; worst: InfoCardData; currency: string }) {
+  // State machine: hidden → entering → visible → flipping → visible → exiting → hidden (3s pause) → repeat
+  const [phase, setPhase] = useState<'hidden' | 'entering' | 'visible' | 'flipping' | 'exiting'>('hidden');
+  const [showBack, setShowBack] = useState(false); // false = best (front), true = worst (back)
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const clear = () => { if (timerRef.current) clearTimeout(timerRef.current); };
+
+    switch (phase) {
+      case 'hidden':
+        clear();
+        timerRef.current = setTimeout(() => {
+          setShowBack(false);
+          setPhase('entering');
+        }, 3000);
+        break;
+      case 'entering':
+        clear();
+        timerRef.current = setTimeout(() => setPhase('visible'), 700);
+        break;
+      case 'visible':
+        clear();
+        timerRef.current = setTimeout(() => {
+          if (!showBack) {
+            setPhase('flipping');
+          } else {
+            setPhase('exiting');
+          }
+        }, 5000);
+        break;
+      case 'flipping':
+        clear();
+        timerRef.current = setTimeout(() => {
+          setShowBack(true);
+          setPhase('visible');
+        }, 800);
+        break;
+      case 'exiting':
+        clear();
+        timerRef.current = setTimeout(() => setPhase('hidden'), 600);
+        break;
+    }
+    return clear;
+  }, [phase, showBack]);
+
+  // Start the cycle
+  useEffect(() => {
+    setPhase('hidden');
+  }, []);
+
+  const renderFace = (data: InfoCardData, isFront: boolean) => (
+    <div className={`bht-infocard-face ${isFront ? 'bht-infocard-front' : 'bht-infocard-back'} bht-infocard-face--${data.type}`}>
+      <div className="bht-infocard-thumb">
+        {data.image ? (
+          <img src={data.image} alt={data.slotName} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+        ) : <div className="bht-infocard-thumb-ph" />}
+      </div>
+      <div className="bht-infocard-info">
+        <span className={`bht-infocard-type bht-infocard-type--${data.type}`}>
+          {data.type === 'best' ? '★ BEST SLOT' : '▼ WORST SLOT'}
+        </span>
+        <span className="bht-infocard-slotname">{data.slotName}</span>
+        <div className="bht-infocard-stats">
+          <div className="bht-infocard-stat">
+            <span className="bht-infocard-stat-label">Multi</span>
+            <span className="bht-infocard-stat-value bht-infocard-stat-value--multi">{data.multiplier.toFixed(1)}x</span>
+          </div>
+          <div className="bht-infocard-stat">
+            <span className="bht-infocard-stat-label">Profit</span>
+            <span className={`bht-infocard-stat-value ${data.profit >= 0 ? 'bht-infocard-stat-value--profit-pos' : 'bht-infocard-stat-value--profit-neg'}`}>
+              {data.profit >= 0 ? '+' : ''}{currency}{data.profit.toFixed(2)}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (phase === 'hidden') return null;
+
+  const stateClass = phase === 'entering' ? 'bht-infocard--entering'
+    : phase === 'exiting' ? 'bht-infocard--exiting'
+    : phase === 'flipping' ? 'bht-infocard--visible bht-infocard--flipping'
+    : 'bht-infocard--visible';
+
+  return (
+    <div className="bht-infocard-anchor">
+      <div className={`bht-infocard ${stateClass}`}>
+        <div className="bht-infocard-flipper">
+          {renderFace(best, true)}
+          {renderFace(worst, false)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ═══════════════════════════════════════════════════════
    V11 "Fever" Bonus Hunt Widget
    ═══════════════════════════════════════════════════════ */
@@ -475,6 +594,41 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
           </div>
         </div>
       )}
+
+      {/* ═══ 7. 3D Best/Worst Info Card ═══ */}
+      {(() => {
+        const openedBonuses = bonuses.filter(b => b.opened && (Number(b.payout) || 0) > 0);
+        if (openedBonuses.length < 1) return null;
+
+        const best = openedBonuses.reduce((a, b) => {
+          const aMulti = a.multiplier ?? ((Number(a.payout) || 0) / (Number(a.originalBet) || Number(a.betSize) || 1));
+          const bMulti = b.multiplier ?? ((Number(b.payout) || 0) / (Number(b.originalBet) || Number(b.betSize) || 1));
+          return bMulti > aMulti ? b : a;
+        });
+        const worst = openedBonuses.reduce((a, b) => {
+          const aMulti = a.multiplier ?? ((Number(a.payout) || 0) / (Number(a.originalBet) || Number(a.betSize) || 1));
+          const bMulti = b.multiplier ?? ((Number(b.payout) || 0) / (Number(b.originalBet) || Number(b.betSize) || 1));
+          return bMulti < aMulti ? b : a;
+        });
+
+        const bestBet = Number(best.originalBet) || Number(best.betSize) || 0;
+        const bestPayout = Number(best.payout) || 0;
+        const bestMulti = best.multiplier ?? (bestBet > 0 ? bestPayout / bestBet : 0);
+        const bestProfit = bestPayout - bestBet;
+
+        const worstBet = Number(worst.originalBet) || Number(worst.betSize) || 0;
+        const worstPayout = Number(worst.payout) || 0;
+        const worstMulti = worst.multiplier ?? (worstBet > 0 ? worstPayout / worstBet : 0);
+        const worstProfit = worstPayout - worstBet;
+
+        return (
+          <InfoCard3D
+            currency={currency}
+            best={{ type: 'best', slotName: best.slotName || best.slot?.name || '???', multiplier: bestMulti, profit: bestProfit, image: best.slot?.image || '' }}
+            worst={{ type: 'worst', slotName: worst.slotName || worst.slot?.name || '???', multiplier: worstMulti, profit: worstProfit, image: worst.slot?.image || '' }}
+          />
+        );
+      })()}
     </div>
   );
 }
