@@ -352,15 +352,17 @@ function BonusHuntWidget({ config }: { config: BonusHuntConfig }) {
 
       {/* ═══ 3. Counts ═══ */}
       <div className="bht11-counts-col">
-        <div className="bht11-count-bar bht11-count-bar--super">
-          <span className="bht11-count-bar-icon">⚡</span>
-          <span className="bht11-count-bar-label">SUPER</span>
-          <span className="bht11-count-bar-value">{stats.superCount}</span>
-        </div>
-        <div className="bht11-count-bar bht11-count-bar--extreme">
-          <span className="bht11-count-bar-icon">🔥</span>
-          <span className="bht11-count-bar-label">EXTREME</span>
-          <span className="bht11-count-bar-value">{stats.extremeCount}</span>
+        <div className="bht11-count-bar-row">
+          <div className="bht11-count-bar bht11-count-bar--super">
+            <span className="bht11-count-bar-icon">⚡</span>
+            <span className="bht11-count-bar-label">SUPER</span>
+            <span className="bht11-count-bar-value">{stats.superCount}</span>
+          </div>
+          <div className="bht11-count-bar bht11-count-bar--extreme">
+            <span className="bht11-count-bar-icon">🔥</span>
+            <span className="bht11-count-bar-label">EXTREME</span>
+            <span className="bht11-count-bar-value">{stats.extremeCount}</span>
+          </div>
         </div>
         <div className="bht11-count-bar">
           <span className="bht11-count-bar-icon">🎁</span>
@@ -525,7 +527,9 @@ export function BonusHuntOverlay({ huntId, embedded = false }: BonusHuntOverlayP
               const changed =
                 n.show_on_main_overlay !== o.show_on_main_overlay ||
                 n.status !== o.status ||
-                n.total_invested !== o.total_invested;
+                n.total_invested !== o.total_invested ||
+                n.initial_break_even !== o.initial_break_even ||
+                n.current_break_even !== o.current_break_even;
               if (changed) {
                 setHunt(prev => prev ? { ...prev, ...n } : prev);
               }

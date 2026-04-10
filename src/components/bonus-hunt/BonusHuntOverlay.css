@@ -98,7 +98,7 @@
   opacity: 0.85;
 }
 .bht11-stat-card-value {
-  font-size: 1.05em;
+  font-size: 0.85em;
   font-weight: 900;
   color: #ffffff;
   text-shadow: 0 0 12px rgba(96,165,250,0.3);
@@ -173,7 +173,7 @@
   color: #93c5fd;
 }
 .bht11-count-bar-value {
-  font-size: 1em;
+  font-size: 0.85em;
   font-weight: 900;
   color: #ffffff;
   margin-left: auto;
