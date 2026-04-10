@@ -537,6 +537,22 @@
   text-shadow: 0 1px 4px rgba(0,0,0,1);
   margin-left: 12px;
 }
+.bht-cpt-card-bet-lbl {
+  font-size: 0.62em;
+  font-weight: 800;
+  color: #93c5fd;
+  flex-shrink: 0;
+  white-space: nowrap;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+}
+.bht-cpt-card-idx-lbl {
+  font-size: 0.62em;
+  font-weight: 900;
+  color: rgba(255,255,255,0.7);
+  flex-shrink: 0;
+  white-space: nowrap;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+}
 
 .bht-cpt-card-row2 {
   display: flex;
