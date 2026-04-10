@@ -18,6 +18,7 @@
   height: 100%;
   box-sizing: border-box;
   contain: layout style;
+  position: relative;
 }
 
 /* ── 1. Header ── */
@@ -642,7 +643,10 @@
   font-weight: 900;
 }
 
-/* ── Opening mode: list fills middle, best slot pinned to bottom ── */
+/* ── Opening mode overrides ── */
+.bht11--opening {
+  overflow: visible;
+}
 .bht11--opening .bht11-list-section {
   flex: 1 1 0;
   min-height: 0;
@@ -729,4 +733,53 @@
 }
 .bht-best-slot-value--bet {
   color: #93c5fd;
+}
+
+/* ═══════════════════════════════════════════════════════
+   7. Slide-down active card (opening mode)
+   ═══════════════════════════════════════════════════════ */
+.bht-slidedown-card {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translate(-50%, 100%);
+  width: 110px;
+  height: 160px;
+  z-index: 60;
+  animation: bht-slidedown-enter 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  filter: drop-shadow(0 6px 20px rgba(0,0,0,0.7));
+}
+.bht-slidedown-card .bht-stack-card-inner {
+  width: 100%;
+  height: 100%;
+}
+.bht-slidedown-info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(6,10,32,0.92);
+  padding: 3px 6px;
+  text-align: center;
+  border-radius: 0 0 12px 12px;
+}
+.bht-slidedown-name {
+  font-size: 0.60em;
+  font-weight: 900;
+  color: #fff;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+@keyframes bht-slidedown-enter {
+  0% {
+    transform: translate(-50%, 20%);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(-50%, 100%);
+    opacity: 1;
+  }
 }
