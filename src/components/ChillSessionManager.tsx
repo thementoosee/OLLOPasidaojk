@@ -246,6 +246,7 @@ export function ChillSessionManager() {
         .from('chill_bonuses')
         .insert({
           session_id: activeSession.id,
+          slot_name: activeSession.slot_name,
           bet_amount: betAmount,
           win_amount: winAmount,
           multiplier: multiplier

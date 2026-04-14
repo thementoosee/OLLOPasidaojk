@@ -214,14 +214,14 @@ export function ChillSessionOverlay({ sessionId, embedded = false, frozen = fals
       // Count total bonuses from ALL sources for this slot (lifetime)
       let totalBonuses = 0;
 
-      // Count from chill sessions for this slot
-      const { data: chillSessions } = await supabase
-        .from('chill_sessions')
-        .select('total_bonuses')
+      // Count individual chill bonuses for this slot (by slot_name on the bonus itself)
+      const { data: chillBonusCount } = await supabase
+        .from('chill_bonuses')
+        .select('id')
         .ilike('slot_name', slotName);
 
-      if (chillSessions) {
-        chillSessions.forEach(s => { totalBonuses += s.total_bonuses || 0; });
+      if (chillBonusCount) {
+        totalBonuses += chillBonusCount.length;
       }
 
       // Count from bonus hunt items (opened) for this slot
@@ -258,14 +258,14 @@ export function ChillSessionOverlay({ sessionId, embedded = false, frozen = fals
         let maxWin = 0;
         let maxMultiplier = 0;
 
-        const { data: chillAll } = await supabase
-          .from('chill_sessions')
-          .select('max_win, max_multiplier')
+        const { data: chillBonuses } = await supabase
+          .from('chill_bonuses')
+          .select('win_amount, multiplier')
           .ilike('slot_name', slotName);
-        if (chillAll) {
-          chillAll.forEach(s => {
-            if (s.max_win > maxWin) maxWin = s.max_win;
-            if (s.max_multiplier > maxMultiplier) maxMultiplier = s.max_multiplier;
+        if (chillBonuses) {
+          chillBonuses.forEach(b => {
+            if (b.win_amount > maxWin) maxWin = b.win_amount;
+            if (b.multiplier > maxMultiplier) maxMultiplier = b.multiplier;
           });
         }
 

@@ -633,6 +633,7 @@ CREATE TABLE chill_sessions (
 CREATE TABLE chill_bonuses (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   session_id uuid NOT NULL REFERENCES chill_sessions(id) ON DELETE CASCADE,
+  slot_name text,
   bet_amount decimal(10,2) NOT NULL,
   win_amount decimal(10,2) NOT NULL,
   multiplier decimal(10,2) NOT NULL,
