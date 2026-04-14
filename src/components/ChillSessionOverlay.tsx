@@ -534,28 +534,6 @@ export function ChillSessionOverlay({ sessionId, embedded = false, frozen = fals
                 </div>
               </div>
 
-              {personalBest && personalBest.bet_amount > 0 && (
-                <div className="flex items-center gap-2">
-                  <div
-                    className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                    style={{ backgroundColor: 'rgba(99, 102, 241, 0.2)' }}
-                  >
-                    <TrendingUp className="w-4 h-4" style={{ color: '#6366f1' }} />
-                  </div>
-                  <div className="flex-1">
-                    <div
-                      className="text-[9px] font-bold uppercase tracking-wide"
-                      style={{ color: 'rgba(255,255,255,0.6)' }}
-                    >
-                      Best Bet
-                    </div>
-                    <div className="text-base font-black text-white">
-                      €{personalBest.bet_amount.toFixed(2)}
-                    </div>
-                  </div>
-                </div>
-              )}
-
               <div className="flex items-center gap-2">
                 <div
                   className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
