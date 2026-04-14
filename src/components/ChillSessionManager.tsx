@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Coffee, Plus, X, TrendingUp, TrendingDown, CreditCard as Edit2, Search, Monitor } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { supabase, upsertSlotBestResult } from '../lib/supabase';
 
 interface ChillSession {
   id: string;
@@ -252,6 +252,17 @@ export function ChillSessionManager() {
         });
 
       if (error) throw error;
+
+      // Upsert slot best result for the chill session's current slot
+      if (activeSession.slot_name) {
+        await upsertSlotBestResult(
+          activeSession.slot_name,
+          betAmount,
+          winAmount,
+          multiplier,
+          'chill'
+        );
+      }
 
       setNewBonus({ bet: '', win: '' });
       await loadBonuses();

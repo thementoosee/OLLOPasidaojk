@@ -1,6 +1,6 @@
   import { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, ArrowUpDown, Monitor, Plus, Trash2, BarChart3 } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
+import { supabase, upsertSlotBestResult } from '../../lib/supabase';
 import { calculateBE, calculateLiveBE, calculateTotalBetAll, formatMultiplier } from '../../lib/breakEvenCalculations';
 
 interface BonusHunt {
@@ -222,6 +222,18 @@ export function UnifiedBonusHuntController({ initialHuntId, onBackToList }: Unif
         .eq('id', itemId);
 
       if (error) throw error;
+
+      // Upsert slot best result if payment is set
+      if (targetItem && normalizedPayment !== null && normalizedPayment > 0 && targetItem.slot_name) {
+        await upsertSlotBestResult(
+          targetItem.slot_name,
+          targetItem.bet_amount,
+          normalizedPayment,
+          computedMultiplier || 0,
+          'bonus_hunt'
+        );
+      }
+
       await loadHuntItems();
     } catch (error) {
       console.error('Error updating payment:', error);

@@ -36,6 +36,8 @@ interface PersonalBest {
   max_win: number;
   max_multiplier: number;
   total_bonuses: number;
+  bet_amount: number;
+  source: string;
 }
 
 interface ChillSessionOverlayProps {
@@ -79,6 +81,11 @@ export function ChillSessionOverlay({ sessionId, embedded = false, frozen = fals
       .on('postgres_changes', { event: '*', schema: 'public', table: 'slots' }, () => {
         if (session?.slot_name) {
           loadSlotInfo(session.slot_name);
+        }
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'slot_best_results' }, () => {
+        if (session?.slot_name) {
+          loadPersonalBest(session.slot_name);
         }
       })
       .subscribe();
@@ -174,56 +181,81 @@ export function ChillSessionOverlay({ sessionId, embedded = false, frozen = fals
 
   const loadPersonalBest = async (slotName: string) => {
     try {
-      // Get all chill sessions for this slot
-      const { data: chillSessions, error: chillError } = await supabase
+      // Get best result from the slot_best_results table
+      const { data: bestResult, error: bestError } = await supabase
+        .from('slot_best_results')
+        .select('*')
+        .ilike('slot_name', slotName)
+        .maybeSingle();
+
+      if (bestError) throw bestError;
+
+      // Also count total bonuses from chill sessions + bonus hunts for this slot
+      let totalBonuses = 0;
+
+      const { data: chillSessions } = await supabase
         .from('chill_sessions')
-        .select('max_win, max_multiplier, total_bonuses')
+        .select('total_bonuses')
         .ilike('slot_name', slotName);
 
-      if (chillError) throw chillError;
+      if (chillSessions) {
+        chillSessions.forEach(s => { totalBonuses += s.total_bonuses || 0; });
+      }
 
-      // Get all bonus hunt items for this slot
-      const { data: huntItems, error: huntError } = await supabase
+      const { data: huntItems } = await supabase
         .from('bonus_hunt_items')
-        .select('result_amount, payment_amount, bet_amount, status')
+        .select('id')
         .ilike('slot_name', slotName)
         .eq('status', 'opened');
 
-      if (huntError) throw huntError;
-
-      let maxWin = 0;
-      let maxMultiplier = 0;
-      let totalBonuses = 0;
-
-      // Process chill sessions
-      if (chillSessions && chillSessions.length > 0) {
-        chillSessions.forEach(session => {
-          if (session.max_win > maxWin) maxWin = session.max_win;
-          if (session.max_multiplier > maxMultiplier) maxMultiplier = session.max_multiplier;
-          totalBonuses += session.total_bonuses || 0;
-        });
+      if (huntItems) {
+        totalBonuses += huntItems.length;
       }
 
-      // Process bonus hunt items
-      if (huntItems && huntItems.length > 0) {
-        huntItems.forEach(item => {
-          if (item.result_amount) {
-            if (item.result_amount > maxWin) maxWin = item.result_amount;
+      if (bestResult) {
+        setPersonalBest({
+          max_win: bestResult.win_amount,
+          max_multiplier: bestResult.multiplier,
+          total_bonuses: totalBonuses,
+          bet_amount: bestResult.bet_amount,
+          source: bestResult.source,
+        });
+      } else if (totalBonuses > 0) {
+        // Fallback: aggregate from existing data if slot_best_results is empty
+        let maxWin = 0;
+        let maxMultiplier = 0;
 
+        const { data: chillAll } = await supabase
+          .from('chill_sessions')
+          .select('max_win, max_multiplier')
+          .ilike('slot_name', slotName);
+        if (chillAll) {
+          chillAll.forEach(s => {
+            if (s.max_win > maxWin) maxWin = s.max_win;
+            if (s.max_multiplier > maxMultiplier) maxMultiplier = s.max_multiplier;
+          });
+        }
+
+        const { data: huntOpened } = await supabase
+          .from('bonus_hunt_items')
+          .select('result_amount, payment_amount, bet_amount')
+          .ilike('slot_name', slotName)
+          .eq('status', 'opened');
+        if (huntOpened) {
+          huntOpened.forEach(item => {
+            if (item.result_amount && item.result_amount > maxWin) maxWin = item.result_amount;
             const payment = item.payment_amount || item.bet_amount;
-            const multiplier = item.result_amount / payment;
-            if (multiplier > maxMultiplier) maxMultiplier = multiplier;
+            const multi = item.result_amount ? item.result_amount / payment : 0;
+            if (multi > maxMultiplier) maxMultiplier = multi;
+          });
+        }
 
-            totalBonuses += 1;
-          }
-        });
-      }
-
-      if (maxWin > 0 || totalBonuses > 0) {
         setPersonalBest({
           max_win: maxWin,
           max_multiplier: maxMultiplier,
-          total_bonuses: totalBonuses
+          total_bonuses: totalBonuses,
+          bet_amount: 0,
+          source: '',
         });
       } else {
         setPersonalBest(null);
@@ -491,6 +523,28 @@ export function ChillSessionOverlay({ sessionId, embedded = false, frozen = fals
                   </div>
                 </div>
               </div>
+
+              {personalBest && personalBest.bet_amount > 0 && (
+                <div className="flex items-center gap-2">
+                  <div
+                    className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                    style={{ backgroundColor: 'rgba(99, 102, 241, 0.2)' }}
+                  >
+                    <TrendingUp className="w-4 h-4" style={{ color: '#6366f1' }} />
+                  </div>
+                  <div className="flex-1">
+                    <div
+                      className="text-[9px] font-bold uppercase tracking-wide"
+                      style={{ color: 'rgba(255,255,255,0.6)' }}
+                    >
+                      Best Bet
+                    </div>
+                    <div className="text-base font-black text-white">
+                      €{personalBest.bet_amount.toFixed(2)}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="flex items-center gap-2">
                 <div

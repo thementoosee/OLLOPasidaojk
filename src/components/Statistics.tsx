@@ -185,6 +185,40 @@ export function Statistics() {
 
   const loadTopSlots = async () => {
     try {
+      // Primary source: slot_best_results (all-time best per slot)
+      const { data: bestResults, error: bestError } = await supabase
+        .from('slot_best_results')
+        .select('slot_name, bet_amount, win_amount, multiplier, source')
+        .order('win_amount', { ascending: false })
+        .limit(5);
+
+      if (bestError) throw bestError;
+
+      if (bestResults && bestResults.length > 0) {
+        // Fetch images for these slots
+        const slotNames = bestResults.map(r => r.slot_name);
+        const { data: slotsData } = await supabase
+          .from('slots')
+          .select('name, image_url')
+          .in('name', slotNames);
+
+        const slotImages = new Map(slotsData?.map(s => [s.name, s.image_url]) || []);
+
+        const slots: TopSlot[] = bestResults.map(r => ({
+          slot_name: r.slot_name,
+          slot_image: slotImages.get(r.slot_name) || '/image.png',
+          total_bonuses: 1,
+          total_bet: r.bet_amount,
+          total_won: r.win_amount,
+          profit: r.win_amount - r.bet_amount,
+          average_multiplier: r.multiplier
+        }));
+
+        setTopSlots(slots);
+        return;
+      }
+
+      // Fallback: aggregate from existing tables if slot_best_results is empty
       const { data: huntItems, error: huntError } = await supabase
         .from('bonus_hunt_items')
         .select('slot_name, slot_image_url, bet_amount, payment_amount, result_amount, status');
