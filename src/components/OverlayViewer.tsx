@@ -500,7 +500,7 @@ export function OverlayViewer({ overlayId }: OverlayViewerProps) {
                       </svg>
                     )}
                     <span
-                      className="text-[12px] font-bold uppercase"
+                      className="text-[16px] font-bold uppercase"
                       style={{
                         color: rawWagerType.toLowerCase() === 'wager' ? '#10b981' : '#ef4444',
                         fontFamily: 'Rubik, sans-serif'
