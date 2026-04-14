@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Trophy, TrendingUp, Zap, Target, Star } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
@@ -51,6 +51,10 @@ export function ChillSessionOverlay({ sessionId, embedded = false, frozen = fals
   const [brandLogo, setBrandLogo] = useState<BrandLogo | null>(null);
   const [slotInfo, setSlotInfo] = useState<SlotInfo | null>(null);
   const [personalBest, setPersonalBest] = useState<PersonalBest | null>(null);
+  const sessionRef = useRef<ChillSession | null>(null);
+
+  // Keep ref in sync so realtime callbacks always see the latest session
+  useEffect(() => { sessionRef.current = session; }, [session]);
 
   useEffect(() => {
     if (sessionId) {
@@ -74,18 +78,21 @@ export function ChillSessionOverlay({ sessionId, embedded = false, frozen = fals
         }
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'brand_logos' }, () => {
-        if (session?.brand_logo_id) {
-          loadBrandLogo(session.brand_logo_id);
+        const s = sessionRef.current;
+        if (s?.brand_logo_id) {
+          loadBrandLogo(s.brand_logo_id);
         }
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'slots' }, () => {
-        if (session?.slot_name) {
-          loadSlotInfo(session.slot_name);
+        const s = sessionRef.current;
+        if (s?.slot_name) {
+          loadSlotInfo(s.slot_name);
         }
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'slot_best_results' }, () => {
-        if (session?.slot_name) {
-          loadPersonalBest(session.slot_name);
+        const s = sessionRef.current;
+        if (s?.slot_name) {
+          loadPersonalBest(s.slot_name);
         }
       })
       .subscribe();
@@ -101,6 +108,9 @@ export function ChillSessionOverlay({ sessionId, embedded = false, frozen = fals
         loadBrandLogo(session.brand_logo_id);
       }
       if (session.slot_name) {
+        // Clear stale data immediately so old slot stats don't linger
+        setPersonalBest(null);
+        setSlotInfo(null);
         loadSlotInfo(session.slot_name);
         loadPersonalBest(session.slot_name);
       }
