@@ -94,6 +94,18 @@ export function ChillSessionOverlay({ sessionId, embedded = false, frozen = fals
           loadPersonalBest(s.slot_name);
         }
       })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'chill_bonuses' }, () => {
+        const s = sessionRef.current;
+        if (s?.slot_name) {
+          loadPersonalBest(s.slot_name);
+        }
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'bonus_hunt_items' }, () => {
+        const s = sessionRef.current;
+        if (s?.slot_name) {
+          loadPersonalBest(s.slot_name);
+        }
+      })
       .subscribe();
 
     return () => {
@@ -199,9 +211,10 @@ export function ChillSessionOverlay({ sessionId, embedded = false, frozen = fals
 
       if (bestError) throw bestError;
 
-      // Also count total bonuses from chill sessions + bonus hunts for this slot
+      // Count total bonuses from ALL sources for this slot (lifetime)
       let totalBonuses = 0;
 
+      // Count from chill sessions for this slot
       const { data: chillSessions } = await supabase
         .from('chill_sessions')
         .select('total_bonuses')
@@ -211,6 +224,7 @@ export function ChillSessionOverlay({ sessionId, embedded = false, frozen = fals
         chillSessions.forEach(s => { totalBonuses += s.total_bonuses || 0; });
       }
 
+      // Count from bonus hunt items (opened) for this slot
       const { data: huntItems } = await supabase
         .from('bonus_hunt_items')
         .select('id')
@@ -219,6 +233,17 @@ export function ChillSessionOverlay({ sessionId, embedded = false, frozen = fals
 
       if (huntItems) {
         totalBonuses += huntItems.length;
+      }
+
+      // Count from bonus opening items (opened) for this slot
+      const { data: openingItems } = await supabase
+        .from('bonus_opening_items')
+        .select('id')
+        .ilike('slot_name', slotName)
+        .eq('status', 'opened');
+
+      if (openingItems) {
+        totalBonuses += openingItems.length;
       }
 
       if (bestResult) {
