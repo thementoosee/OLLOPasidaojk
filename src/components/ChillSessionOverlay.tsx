@@ -36,7 +36,6 @@ interface PersonalBest {
   max_win: number;
   max_multiplier: number;
   total_bonuses: number;
-  bet_amount: number;
   source: string;
 }
 
@@ -227,7 +226,6 @@ export function ChillSessionOverlay({ sessionId, embedded = false, frozen = fals
           max_win: bestResult.win_amount,
           max_multiplier: bestResult.multiplier,
           total_bonuses: totalBonuses,
-          bet_amount: bestResult.bet_amount,
           source: bestResult.source,
         });
       } else if (totalBonuses > 0) {
@@ -264,7 +262,6 @@ export function ChillSessionOverlay({ sessionId, embedded = false, frozen = fals
           max_win: maxWin,
           max_multiplier: maxMultiplier,
           total_bonuses: totalBonuses,
-          bet_amount: 0,
           source: '',
         });
       } else {
