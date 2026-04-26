@@ -861,25 +861,28 @@
   width: 100%;
   height: 100%;
   border-radius: 12px;
-  background: linear-gradient(165deg, #1a1d2e 0%, #0d0f1a 100%);
-  border: 1.5px solid rgba(255, 255, 255, 0.08);
+  background:
+    radial-gradient(120% 100% at 50% 0%, rgba(56, 189, 248, 0.12) 0%, rgba(56, 189, 248, 0) 55%),
+    linear-gradient(165deg, #061225 0%, #030a16 100%);
+  border: 1.5px solid rgba(96, 165, 250, 0.22);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 13px 10px;
-  gap: 10px;
+  align-items: stretch;
+  justify-content: flex-start;
+  padding: 10px 9px;
+  gap: 6px;
   box-sizing: border-box;
 }
 
 /* Badge: ★ BEST SLOT / ▼ WORST SLOT */
 .bht-bw-stats-badge {
-  font-size: 0.65em;
+  font-size: 0.54em;
   font-weight: 900;
-  letter-spacing: 2px;
+  letter-spacing: 1.3px;
   text-transform: uppercase;
   line-height: 1;
-  margin-bottom: 2px;
+  margin: 1px 0 5px;
+  text-align: center;
 }
 .bht-bw-stats-badge--best {
   color: #4ade80;
@@ -894,15 +897,24 @@
 .bht-bw-stats-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   width: 100%;
-  padding: 5px 8px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.04);
+  padding: 2px 0;
+  border-radius: 0;
+  background: transparent;
 }
 
 .bht-bw-stats-icon {
-  font-size: 1.05em;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.74em;
+  border-radius: 7px;
+  background: linear-gradient(145deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.9));
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
   flex-shrink: 0;
   line-height: 1;
 }
@@ -911,21 +923,34 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  gap: 1px;
 }
 
 .bht-bw-stats-value {
-  font-size: 0.91em;
+  font-size: 0.88em;
   font-weight: 900;
+  color: #f8fafc;
+  text-shadow: none;
+  line-height: 1.05;
+}
+
+.bht-bw-back-win-val {
   color: #fbbf24;
-  text-shadow: 0 0 6px rgba(251, 191, 36, 0.4);
-  line-height: 1.2;
+}
+
+.bht-bw-back-multi-val {
+  color: #a855f7;
+}
+
+.bht-bw-back-bet-val {
+  color: #22c55e;
 }
 
 .bht-bw-stats-label {
-  font-size: 0.46em;
+  font-size: 0.36em;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(226, 232, 240, 0.58);
   text-transform: uppercase;
-  letter-spacing: 1px;
-  line-height: 1.3;
+  letter-spacing: 1.2px;
+  line-height: 1;
 }
