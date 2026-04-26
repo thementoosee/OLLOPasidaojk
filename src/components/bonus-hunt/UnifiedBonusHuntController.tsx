@@ -658,7 +658,7 @@ export function UnifiedBonusHuntController({ initialHuntId, onBackToList }: Unif
             <div className="grid grid-cols-3 gap-2 pt-2">
               <button
                 onClick={async () => {
-                  const sortedItems = [...items].sort((a, b) => (b.payment_amount || b.bet_amount) - (a.payment_amount || a.bet_amount));
+                  const sortedItems = [...items].sort((a, b) => (a.payment_amount || a.bet_amount) - (b.payment_amount || b.bet_amount));
                   for (let i = 0; i < sortedItems.length; i++) {
                     await supabase
                       .from('bonus_hunt_items')
