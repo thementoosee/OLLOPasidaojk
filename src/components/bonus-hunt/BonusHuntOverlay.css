@@ -876,7 +876,7 @@
 
 /* Badge: ★ BEST SLOT / ▼ WORST SLOT */
 .bht-bw-stats-badge {
-  font-size: 0.54em;
+  font-size: 0.66em;
   font-weight: 900;
   letter-spacing: 1.3px;
   text-transform: uppercase;
@@ -899,7 +899,7 @@
   align-items: center;
   gap: 7px;
   width: 100%;
-  padding: 2px 0;
+  padding: 3px 0;
   border-radius: 0;
   background: transparent;
 }
@@ -922,12 +922,16 @@
 .bht-bw-stats-text {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  flex: 1;
   min-width: 0;
-  gap: 1px;
+  gap: 2px;
 }
 
 .bht-bw-stats-value {
-  font-size: 0.88em;
+  font-size: 1.06em;
   font-weight: 900;
   color: #f8fafc;
   text-shadow: none;
@@ -947,7 +951,7 @@
 }
 
 .bht-bw-stats-label {
-  font-size: 0.36em;
+  font-size: 0.46em;
   font-weight: 700;
   color: rgba(226, 232, 240, 0.58);
   text-transform: uppercase;
