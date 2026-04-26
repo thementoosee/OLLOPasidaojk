@@ -818,8 +818,8 @@
 
 /* Card shell — translateY(0%) = fully hidden behind container */
 .bht-bw-flipcard {
-  width: 110px;
-  height: 160px;
+  width: 143px;
+  height: 208px;
   position: relative;
   will-change: transform, opacity;
   filter:
@@ -867,14 +867,14 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 10px 8px;
-  gap: 8px;
+  padding: 13px 10px;
+  gap: 10px;
   box-sizing: border-box;
 }
 
 /* Badge: ★ BEST SLOT / ▼ WORST SLOT */
 .bht-bw-stats-badge {
-  font-size: 0.5em;
+  font-size: 0.65em;
   font-weight: 900;
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -894,15 +894,15 @@
 .bht-bw-stats-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   width: 100%;
-  padding: 4px 6px;
+  padding: 5px 8px;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.04);
 }
 
 .bht-bw-stats-icon {
-  font-size: 0.8em;
+  font-size: 1.05em;
   flex-shrink: 0;
   line-height: 1;
 }
@@ -914,7 +914,7 @@
 }
 
 .bht-bw-stats-value {
-  font-size: 0.7em;
+  font-size: 0.91em;
   font-weight: 900;
   color: #fbbf24;
   text-shadow: 0 0 6px rgba(251, 191, 36, 0.4);
@@ -922,7 +922,7 @@
 }
 
 .bht-bw-stats-label {
-  font-size: 0.35em;
+  font-size: 0.46em;
   font-weight: 700;
   color: rgba(255, 255, 255, 0.5);
   text-transform: uppercase;
