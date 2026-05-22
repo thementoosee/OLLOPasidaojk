@@ -1,0 +1,960 @@
+/* ── V11 Fever Font ── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+/* ════════════════════════════════════════════════
+   ROOT — V11 "Fever" Bonus Hunt Widget
+   ════════════════════════════════════════════════ */
+.bht11 {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: transparent;
+  border-radius: 20px;
+  padding: 16px 14px;
+  overflow: visible;
+  color: #ffffff;
+  border: 1.5px solid rgba(96,165,250,0.12);
+  height: 100%;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 0; /* create stacking context */
+}
+/* Background rendered as pseudo so best/worst cards can sit between bg and content */
+.bht11::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(170deg, #0b1134 0%, #060a20 60%, #0a0e27 100%);
+  border-radius: 20px;
+  z-index: -2;
+}
+
+/* ── 1. Header ── */
+.bht11-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0 10px;
+}
+.bht11-header-left {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.bht11-header-titles {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+.bht11-header-title {
+  font-size: 1.2em;
+  font-weight: 900;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #fff;
+  line-height: 1.1;
+}
+.bht11-header-subtitle {
+  font-size: 0.58em;
+  font-weight: 600;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #93c5fd;
+  opacity: 0.6;
+  line-height: 1;
+}
+
+/* ── 2. Stats Row (glassmorphism) ── */
+.bht11-stats-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.bht11-stat-card {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(96,165,250,0.12) 0%, rgba(59,130,246,0.06) 100%);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 10px;
+  padding: 4px 10px;
+  border: 1px solid rgba(96,165,250,0.22);
+  position: relative;
+  overflow: hidden;
+}
+.bht11-stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 10%, rgba(255,255,255,0.15) 50%, transparent 90%);
+}
+.bht11-stat-card-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0px;
+}
+.bht11-stat-card-label {
+  font-size: 0.55em;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #93c5fd;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+.bht11-stat-card-value {
+  font-size: 0.85em;
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow: 0 0 12px rgba(96,165,250,0.3);
+}
+
+/* ── Break-Even marquee slider ── */
+.bht11-stat-card--be {
+  overflow: hidden;
+  position: relative;
+}
+.bht11-be-slide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  inset: 0;
+}
+.bht11-be-slide--a {
+  animation: beSlideA 30s ease-in-out infinite;
+}
+.bht11-be-slide--b {
+  animation: beSlideB 30s ease-in-out infinite;
+}
+/* A: visible first half, hidden second half */
+@keyframes beSlideA {
+  0%      { transform: translateY(0);     opacity: 1; }
+  46%     { transform: translateY(0);     opacity: 1; }
+  49%     { transform: translateY(-100%); opacity: 0; }
+  50%     { transform: translateY(100%);  opacity: 0; }
+  96%     { transform: translateY(100%);  opacity: 0; }
+  99%     { transform: translateY(0);     opacity: 1; }
+  100%    { transform: translateY(0);     opacity: 1; }
+}
+/* B: hidden first half, visible second half */
+@keyframes beSlideB {
+  0%      { transform: translateY(100%);  opacity: 0; }
+  46%     { transform: translateY(100%);  opacity: 0; }
+  49%     { transform: translateY(0);     opacity: 1; }
+  50%     { transform: translateY(0);     opacity: 1; }
+  96%     { transform: translateY(0);     opacity: 1; }
+  99%     { transform: translateY(-100%); opacity: 0; }
+  100%    { transform: translateY(100%);  opacity: 0; }
+}
+
+/* ── 3. Count Bars ── */
+.bht11-counts-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+.bht11-count-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(15,21,53,0.85);
+  border-radius: 10px;
+  padding: 4px 12px;
+  border: 1.5px solid rgba(96,165,250,0.18);
+  overflow: hidden;
+}
+.bht11-count-bar-icon {
+  font-size: 0.85em;
+  flex-shrink: 0;
+}
+.bht11-count-bar-label {
+  font-size: 0.65em;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #93c5fd;
+}
+.bht11-count-bar-value {
+  font-size: 0.85em;
+  font-weight: 900;
+  color: #ffffff;
+  margin-left: auto;
+}
+.bht11-count-bar--super {
+  border-color: rgba(234,179,8,0.5);
+  background: linear-gradient(90deg, rgba(234,179,8,0.18) 0%, rgba(234,179,8,0.04) 100%);
+}
+.bht11-count-bar--super .bht11-count-bar-label {
+  color: #eab308;
+}
+.bht11-count-bar--extreme {
+  border-color: rgba(239,68,68,0.5);
+  background: linear-gradient(90deg, rgba(239,68,68,0.18) 0%, rgba(239,68,68,0.04) 100%);
+}
+.bht11-count-bar--extreme .bht11-count-bar-label {
+  color: #ef4444;
+}
+.bht11-count-bar-row {
+  display: flex;
+  gap: 4px;
+}
+.bht11-count-bar-row .bht11-count-bar {
+  flex: 1;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   4. 3D CARD CAROUSEL — all positioning done via JS, CSS is visual only
+   ════════════════════════════════════════════════════════════════ */
+
+.bht-carousel-stage {
+  position: relative;
+  height: 180px;
+  perspective: 1000px;
+  perspective-origin: 50% 50%;
+  margin: 6px 0;
+  overflow: visible;
+}
+
+.bht-carousel-card {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 110px;
+  height: 160px;
+  margin-left: -55px;
+  margin-top: -80px;
+}
+
+/* Smaller cards in opening mode */
+.bht11--opening .bht-carousel-stage {
+  height: 155px;
+}
+.bht11--opening .bht-carousel-card {
+  width: 90px;
+  height: 140px;
+  margin-left: -45px;
+  margin-top: -70px;
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
+  /* NO CSS transition — animation is handled by Web Animations API in JS */
+}
+
+/* Card inner structure */
+.bht-stack-card-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  background: rgba(0,0,0,0.55);
+  border: 1.5px solid rgba(255,255,255,0.1);
+  box-shadow:
+    0 6px 24px rgba(0,0,0,0.6),
+    0 1px 0 rgba(255,255,255,0.06) inset;
+}
+.bht-stack-card--super .bht-stack-card-inner {
+  border-color: rgba(234,179,8,0.7);
+  box-shadow:
+    0 6px 24px rgba(0,0,0,0.6),
+    0 1px 0 rgba(255,255,255,0.06) inset,
+    0 0 12px 3px rgba(234,179,8,0.4),
+    0 0 28px 6px rgba(234,179,8,0.15);
+}
+.bht-stack-card--super .bht-stack-card-inner::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 14px;
+  background: conic-gradient(from 0deg, rgba(234,179,8,0.0), rgba(234,179,8,0.5), rgba(250,204,21,0.7), rgba(234,179,8,0.5), rgba(234,179,8,0.0));
+  z-index: -1;
+  animation: bht-glow-spin 3s linear infinite;
+}
+.bht-stack-card--extreme .bht-stack-card-inner {
+  border-color: rgba(220,38,38,0.8);
+  box-shadow:
+    0 6px 24px rgba(0,0,0,0.6),
+    0 1px 0 rgba(255,255,255,0.06) inset,
+    0 0 14px 4px rgba(220,38,38,0.45),
+    0 0 32px 8px rgba(220,38,38,0.2);
+}
+.bht-stack-card--extreme .bht-stack-card-inner::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 14px;
+  background: conic-gradient(from 0deg, rgba(220,38,38,0.0), rgba(220,38,38,0.5), rgba(239,68,68,0.7), rgba(220,38,38,0.5), rgba(220,38,38,0.0));
+  z-index: -1;
+  animation: bht-glow-spin 2.5s linear infinite;
+}
+@keyframes bht-glow-spin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.bht-stack-card-img-wrap {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+.bht-stack-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.bht-stack-card-img-ph {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1a1f3a, #0e1225);
+}
+
+/* ── Progress bar ── */
+.bht-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  margin: 2px 0 6px;
+}
+.bht-progress-bar {
+  flex: 1;
+  height: 10px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 5px;
+  overflow: hidden;
+  position: relative;
+}
+.bht-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #22c55e, #4ade80);
+  border-radius: 5px;
+  transition: width 0.6s ease;
+  position: relative;
+  overflow: hidden;
+}
+.bht-progress-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    110deg,
+    transparent 20%,
+    rgba(255,255,255,0.35) 40%,
+    rgba(255,255,255,0.35) 45%,
+    transparent 65%
+  );
+  background-size: 200% 100%;
+  animation: bht-progress-swipe 2.5s ease-in-out infinite;
+}
+@keyframes bht-progress-swipe {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.bht-progress-text {
+  font-size: 0.75em;
+  font-weight: 700;
+  color: rgba(255,255,255,0.7);
+  white-space: nowrap;
+}
+
+/* ── Stack section — must not shrink ── */
+.bht11-stack-section {
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+/* ── 5. Bonus List Section ── */
+.bht11-list-section {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+}
+.bht11-list-section .bht-bonus-list {
+  flex: 1 1 0;
+  max-height: none;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+  mask-image: linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%);
+}
+.bht11-list-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.78em;
+  font-weight: 900;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: #60a5fa;
+  padding: 10px 4px 8px;
+}
+.bht11-list-title-icon {
+  font-size: 1em;
+}
+
+/* ── Compact track (auto-scroll driven by JS) ── */
+.bht-compact-track {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  will-change: transform;
+}
+
+/* ── Compact bonus cards (full-bleed image) ── */
+.bht-cpt-card {
+  position: relative;
+  flex-shrink: 0;
+  height: 130px;
+  border-radius: 12px;
+}
+/* Border rendered via ::after so it sits above ALL content */
+.bht-cpt-card::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 13px;
+  border: 3.5px solid #000000;
+  z-index: 50;
+  pointer-events: none;
+}
+.bht-cpt-card--super::after {
+  border-color: rgba(234,179,8,0.85);
+}
+.bht-cpt-card--extreme::after {
+  border-color: rgba(220,38,38,0.9);
+}
+.bht-cpt-card--active::after {
+  border-color: #000000;
+}
+.bht-cpt-card--active.bht-cpt-card--super::after {
+  border-color: rgba(234,179,8,0.85);
+}
+.bht-cpt-card--active.bht-cpt-card--extreme::after {
+  border-color: rgba(220,38,38,0.9);
+}
+.bht-cpt-card--opened {
+  opacity: 0.6;
+}
+.bht-cpt-card--opened.bht-cpt-card--active { opacity: 1; }
+
+/* Full-bleed background image */
+.bht-cpt-card-img-wrap {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  border-radius: 10px;
+}
+.bht-cpt-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 35%;
+  display: block;
+}
+.bht-cpt-card-img-ph {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1a1f3a, #0e1225);
+}
+
+/* Type badges — removed, using border glow instead */
+
+/* Card info overlay on top of image */
+/* Black bar at bottom, slot name centered */
+.bht-cpt-card-info {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1.8em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  background: linear-gradient(135deg, #1a1f3a, #0e1225);
+  overflow: hidden;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  z-index: 2;
+}
+.bht-cpt-card-row1,
+.bht-cpt-card-row2 {
+  padding-left: 0;
+  padding-right: 0;
+}
+.bht-cpt-card-row1 {
+  padding-top: 0;
+  padding-left: 6px;
+  padding-right: 6px;
+  padding-bottom: 0;
+  height: auto;
+  gap: 4px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+.bht-cpt-card-row2 {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  display: flex;
+  padding: 0;
+  gap: 0;
+  font-size: 0.75em;
+  z-index: 3;
+}
+.bht-cpt-card-payout,
+.bht-cpt-card-multi {
+  display: none;
+}
+.bht-cpt-card-name {
+  font-size: 0.70em;
+  font-weight: 900;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  flex: 1;
+  min-width: 0;
+  text-shadow: none;
+  line-height: 1;
+  height: auto;
+  text-align: left;
+  margin-right: 12px;
+}
+.bht-cpt-card-idx {
+  font-size: 0.8em;
+  font-weight: 900;
+  color: rgba(255,255,255,0.6);
+  flex-shrink: 0;
+  text-shadow: 0 1px 4px rgba(0,0,0,1);
+  margin-left: 12px;
+}
+.bht-cpt-card-bet-lbl {
+  font-size: 0.62em;
+  font-weight: 800;
+  color: #93c5fd;
+  flex-shrink: 0;
+  white-space: nowrap;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+}
+.bht-cpt-card-idx-lbl {
+  font-size: 0.62em;
+  font-weight: 900;
+  color: rgba(255,255,255,0.7);
+  flex-shrink: 0;
+  white-space: nowrap;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+}
+
+.bht-cpt-card-row2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78em;
+}
+.bht-cpt-card-bet {
+  font-weight: 800;
+  color: #93c5fd;
+  white-space: nowrap;
+  text-shadow: 0 1px 4px rgba(0,0,0,1), 0 0 8px rgba(0,0,0,0.5);
+  background: #000000;
+  padding: 1px 6px;
+  border-radius: 0 0 8px 0;
+  font-size: 0.78em;
+  min-width: unset;
+  max-width: unset;
+  top: 0;
+  left: 0;
+  line-height: 1.4;
+}
+.bht-cpt-card-payout {
+  font-weight: 700;
+  color: #4ade80;
+  white-space: nowrap;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+  background: rgba(0,0,0,0.4);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+.bht-cpt-card-multi {
+  font-weight: 800;
+  color: #fbbf24;
+  background: rgba(0,0,0,0.4);
+  padding: 1px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+}
+.bht-cpt-card-multi--big {
+  color: #f97316;
+  background: rgba(249,115,22,0.2);
+}
+.bht-cpt-card-multi--huge {
+  color: #ef4444;
+  background: rgba(239,68,68,0.2);
+  text-shadow: 0 0 6px rgba(239,68,68,0.5);
+}
+
+/* Extreme card name color */
+.bht-cpt-card--extreme .bht-cpt-card-name {
+  color: #fca5a5;
+}
+
+/* Super card name color */
+.bht-cpt-card--super .bht-cpt-card-name {
+  color: #fde68a;
+}
+
+/* Corner labels on compact cards */
+.bht-cpt-card-corner {
+  font-size: 0.65em;
+  font-weight: 800;
+  padding: 1px 5px;
+  background: rgba(0,0,0,0.85);
+  color: #ffffff;
+  white-space: nowrap;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+  line-height: 1.4;
+}
+.bht-cpt-card-corner--tl {
+  border-radius: 0 0 8px 0;
+  color: #4ade80;
+}
+.bht-cpt-card-corner--tr {
+  border-radius: 0 0 0 8px;
+  color: #fbbf24;
+}
+.bht-cpt-card-corner--bl {
+  border-radius: 0 8px 0 0;
+  color: #93c5fd;
+}
+.bht-cpt-card-corner--br {
+  border-radius: 8px 0 0 0;
+  color: #ffffff;
+  font-weight: 900;
+}
+
+/* ── Opening mode overrides ── */
+.bht11--opening {
+  overflow: visible;
+}
+.bht11--opening .bht11-list-section {
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+/* ═══════════════════════════════════════════════════════
+   6. Best Slot Card (opening mode)
+   ═══════════════════════════════════════════════════════ */
+.bht-best-slot {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: auto 4px 4px;
+  padding: 10px;
+  background: linear-gradient(135deg, #1a1500 0%, #261d00 50%, #1a1500 100%);
+  border: 1.5px solid rgba(234,179,8,0.35);
+  border-radius: 14px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5), 0 0 12px rgba(234,179,8,0.08);
+}
+.bht-best-slot-img-wrap {
+  width: 76px;
+  height: 76px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(234,179,8,0.2);
+}
+.bht-best-slot-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.bht-best-slot-img-ph {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1a1f3a, #0e1225);
+}
+.bht-best-slot-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+}
+.bht-best-slot-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.bht-best-slot-icon {
+  font-size: 0.9em;
+  width: 18px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.bht-best-slot-value {
+  font-size: 0.9em;
+  font-weight: 800;
+  color: rgba(255,255,255,0.9);
+}
+.bht-best-slot-label {
+  font-size: 0.6em;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.35);
+}
+.bht-best-slot-value--payout {
+  color: #4ade80;
+}
+.bht-best-slot-value--multi {
+  color: #fbbf24;
+}
+.bht-best-slot-value--big {
+  color: #f97316;
+}
+.bht-best-slot-value--huge {
+  color: #ef4444;
+  text-shadow: 0 0 6px rgba(239,68,68,0.5);
+}
+.bht-best-slot-value--bet {
+  color: #93c5fd;
+}
+
+/* ═══════════════════════════════════════════════════════
+   7. Slide-down active card (opening mode)
+   ═══════════════════════════════════════════════════════ */
+.bht-slidedown-card {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translate(-50%, 100%);
+  width: 110px;
+  height: 160px;
+  z-index: 60;
+  animation: bht-slidedown-enter 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  filter: drop-shadow(0 6px 20px rgba(0,0,0,0.7));
+}
+.bht-slidedown-card .bht-stack-card-inner {
+  width: 100%;
+  height: 100%;
+}
+.bht-slidedown-info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(6,10,32,0.92);
+  padding: 3px 6px;
+  text-align: center;
+  border-radius: 0 0 12px 12px;
+}
+.bht-slidedown-name {
+  font-size: 0.60em;
+  font-weight: 900;
+  color: #fff;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+@keyframes bht-slidedown-enter {
+  0% {
+    transform: translate(-50%, 20%);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(-50%, 100%);
+    opacity: 1;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   8. Best/Worst Flip Card — Premium 3D animation system
+   ───────────────────────────────────────────────────────
+   All motion is driven by Web Animations API (JS).
+   CSS defines only structure, 3D setup, and visual styling.
+   ═══════════════════════════════════════════════════════ */
+
+/* Anchor: sits at the bottom edge of the container,
+   z-index -1 so the card appears from behind */
+.bht-bw-anchor {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: -5;
+  pointer-events: none;
+  perspective: 900px;
+  perspective-origin: 50% 100%;
+}
+
+/* Card shell — translateY(0%) = fully hidden behind container */
+.bht-bw-flipcard {
+  width: 143px;
+  height: 208px;
+  position: relative;
+  will-change: transform, opacity;
+  filter:
+    drop-shadow(0 10px 30px rgba(0,0,0,0.65))
+    drop-shadow(0 2px 6px rgba(0,0,0,0.4));
+}
+
+/* 3D flip container — preserve-3d for true face rotation */
+.bht-bw-flipper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* Each face — absolute, backface-hidden */
+.bht-bw-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.bht-bw-face--front {
+  z-index: 1;
+}
+.bht-bw-face--back {
+  transform: rotateY(180deg);
+}
+
+/* Card inner inherits full size from face */
+.bht-bw-face .bht-stack-card-inner {
+  width: 100%;
+  height: 100%;
+}
+
+/* Stats panel (back face) — dark opaque card with stat rows */
+.bht-bw-stats-panel {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  background:
+    radial-gradient(120% 100% at 50% 0%, rgba(56, 189, 248, 0.12) 0%, rgba(56, 189, 248, 0) 55%),
+    linear-gradient(165deg, #061225 0%, #030a16 100%);
+  border: 1.5px solid rgba(96, 165, 250, 0.22);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  padding: 8px 9px;
+  gap: 6px;
+  box-sizing: border-box;
+}
+
+/* Badge: ★ BEST SLOT / ▼ WORST SLOT */
+.bht-bw-stats-badge {
+  font-size: 0.66em;
+  font-weight: 900;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+  line-height: 1;
+  margin: 1px 0 5px;
+  text-align: center;
+}
+.bht-bw-stats-badge--best {
+  color: #4ade80;
+  text-shadow: 0 0 10px rgba(74, 222, 128, 0.6);
+}
+.bht-bw-stats-badge--worst {
+  color: #ef4444;
+  text-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
+}
+
+/* Each stat row: icon + text block */
+.bht-bw-stats-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  padding: 3px 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.bht-bw-stats-icon {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.74em;
+  border-radius: 7px;
+  background: linear-gradient(145deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.9));
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.bht-bw-stats-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  flex: 1;
+  min-width: 0;
+  gap: 2px;
+}
+
+.bht-bw-stats-value {
+  font-size: 1.06em;
+  font-weight: 900;
+  color: #f8fafc;
+  text-shadow: none;
+  line-height: 1.05;
+}
+
+.bht-bw-back-win-val {
+  color: #fbbf24;
+}
+
+.bht-bw-back-multi-val {
+  color: #a855f7;
+}
+
+.bht-bw-back-bet-val {
+  color: #22c55e;
+}
+
+.bht-bw-stats-label {
+  font-size: 0.46em;
+  font-weight: 700;
+  color: rgba(226, 232, 240, 0.58);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  line-height: 1;
+}
